@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast"; 
-import NotificationListener from "./components/NotificationListener"; // 🛑 NAYA: Listener import kiya
+import NextTopLoader from 'nextjs-toploader'; // 🛑 NAYA: Progress bar import kiya
+import NotificationListener from "./components/NotificationListener";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,7 +29,20 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         
-        {/* 🛑 NAYA: Toaster lagaya taake notification screen par pop ho */}
+        {/* 🛑 NAYA: Top Progress Bar */}
+        <NextTopLoader 
+          color="#2563EB" /* Bharosa Lab ka Blue Color */
+          initialPosition={0.08} 
+          crawlSpeed={200} 
+          height={3} /* Line ki motai */
+          crawl={true} 
+          showSpinner={false} /* Right side wala gol spinner band kar diya taake clean lagay */
+          easing="ease" 
+          speed={200} 
+          shadow="0 0 10px #2563EB,0 0 5px #2563EB" /* Glowing effect */
+        />
+
+        {/* Toaster lagaya taake notification screen par pop ho */}
         <Toaster 
           position="top-right"
           toastOptions={{
@@ -37,7 +51,7 @@ export default function RootLayout({
           }} 
         />
 
-        {/* 🛑 NAYA: Background Notification Engine yahan laga diya */}
+        {/* Background Notification Engine */}
         <NotificationListener />
         
         {children}
