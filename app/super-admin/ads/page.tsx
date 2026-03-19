@@ -93,7 +93,7 @@ export default function AdControlPage() {
       
       <div className="max-w-6xl mx-auto mb-8">
         <h1 className="text-3xl font-extrabold tracking-tight mb-2">Campaign & Ad Manager</h1>
-        <p className="text-gray-500">Full control over your mobile app's promotional banner.</p>
+        <p className="text-gray-500">Full control over your mobile app&apos;s promotional banner.</p>
       </div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">

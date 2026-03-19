@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast"; 
+import { Analytics } from "@vercel/analytics/next"
 import NextTopLoader from 'nextjs-toploader'; // 🛑 NAYA: Progress bar import kiya
 import NotificationListener from "./components/NotificationListener";
 import "./globals.css";
@@ -55,6 +56,7 @@ export default function RootLayout({
         <NotificationListener />
         
         {children}
+        <Analytics />
       </body>
     </html>
   );
