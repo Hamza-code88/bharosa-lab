@@ -1,3 +1,4 @@
+// app/dashboard/layout.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -14,7 +15,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
 
-  // 🛑 NAYA: High-Security Auth & Billing Guard
+  // 🛑 NAYA: High-Security Auth & Rolling Threshold Guard
   useEffect(() => {
     const checkAuthAndBilling = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -24,10 +25,10 @@ export default function DashboardLayout({
         return;
       }
 
-      // 1. Fetch Lab Security Data
+      // 1. Fetch Lab Security Data (Now using last_cleared_date)
       const { data: lab } = await supabase
         .from('labs')
-        .select('is_active, payment_status, last_cleared_month')
+        .select('id, is_active, payment_status, last_cleared_date')
         .eq('owner_id', session.user.id)
         .single();
 
@@ -37,32 +38,51 @@ export default function DashboardLayout({
       }
 
       // 2. Super Admin Manual Block Check
-      // Agar aapne Super Admin panel se usko Inactive (Block) kar diya hai
       if (lab.is_active === false) {
         router.push('/payment');
         return;
       }
 
-      // 3. Grace Period & Billing Check (The 5th of Month Logic)
-      const today = new Date();
-      const currentDay = today.getDate();
+      // 3. Rolling Limit (Threshold) Check
+      try {
+        // Fetch Settings for Rate & Threshold
+        const { data: settings } = await supabase.from('app_settings').select('commission_percentage, commission_threshold').eq('id', 1).single();
+        const rate = settings?.commission_percentage || 0;
+        const threshold = settings?.commission_threshold || 2000;
 
-      // Pichle mahine ka String banate hain (e.g. "2026-02")
-      const prevDate = new Date();
-      prevDate.setMonth(today.getMonth() - 1);
-      const prevMonthStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+        // Fetch Bookings generated AFTER the last_cleared_date
+        let query = supabase
+          .from('bookings')
+          .select('total_amount')
+          .eq('lab_id', lab.id)
+          .eq('status', 'Completed');
 
-      // Check: Agar aaj 5 tareekh se oopar hai AUR pichle mahine ka bill clear nahi hua
-      const isOverdue = currentDay > 5 && lab.last_cleared_month !== prevMonthStr;
+        if (lab.last_cleared_date) {
+          query = query.gte('created_at', lab.last_cleared_date);
+        }
 
-      if (isOverdue || lab.payment_status === 'submitted') {
-        // Unka time khatam! Seedha payment page par phenko
-        router.push('/payment');
-        return;
+        const { data: bookings } = await query;
+
+        let totalBilled = 0;
+        if (bookings) {
+          totalBilled = bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
+        }
+
+        const currentCommissionDue = Math.round(totalBilled * (rate / 100));
+
+        // Block Condition: Agar due amount threshold cross kar jaye ya already submitted ho
+        if (currentCommissionDue >= threshold || lab.payment_status === 'submitted') {
+          router.push('/payment');
+          return;
+        }
+
+        // Agar sab clear hai aur limit cross nahi hui toh entry de do
+        setIsAuthorized(true);
+      } catch (error) {
+        console.error("Error checking threshold logic:", error);
+        // Error ki soorat mein fail-safe: Entry rok do ya secure log out kar do, filhal block karte hain
+        router.push('/payment'); 
       }
-
-      // Agar sab theek hai toh Entry Pass do
-      setIsAuthorized(true);
     };
 
     checkAuthAndBilling();

@@ -9,14 +9,18 @@ export interface DashboardStats {
   totalLabs: number;
   totalTestsDone: number;
   revenueGenerated: number;
-  platformCommission: number; // 🛑 NAYA: Hamara Profit
+  platformCommission: number;
 }
 
 export interface LabPerformance {
   lab_name: string;
   test_count: number;
-  total_revenue: number;
-  platform_cut: number; // 🛑 NAYA: Us lab se hamara kitna profit hua
+  total_revenue: number;    // Lifetime
+  current_revenue: number;  // After last cleared date
+  platform_cut: number;     // Lifetime commission
+  current_cut: number;      // Current unpaid commission
+  last_paid_amount: number; // NAYA: Last Paid
+  last_cleared_date: string | null; // NAYA: Date of Last Paid
 }
 
 export interface RecentBooking {
@@ -47,14 +51,26 @@ export default function AllDataDashboard() {
       const rate = settings?.commission_percentage || 0;
       setCommissionRate(rate);
 
-      // 2. Fetch Users & Labs
+      // 2. Fetch Users & Labs (With exact counts, dates, and last paid)
       const { count: patientCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'patient');
-      const { count: labCount } = await supabase.from('labs').select('*', { count: 'exact', head: true });
+      const { data: labsData, count: labCount } = await supabase.from('labs').select('id, name, last_cleared_date, last_paid_amount', { count: 'exact' });
+
+      // Create a map for quick lab info lookup
+      const labInfoMap: Record<string, { name: string, last_cleared: string | null, last_paid: number }> = {};
+      if (labsData) {
+        labsData.forEach(lab => {
+          labInfoMap[lab.id] = { 
+            name: lab.name, 
+            last_cleared: lab.last_cleared_date,
+            last_paid: lab.last_paid_amount || 0 // Store last paid amount
+          };
+        });
+      }
 
       // 3. Fetch Bookings
       const { data: bookingsData } = await supabase
         .from('bookings')
-        .select(`id, created_at, status, total_amount, patient_name, labs ( name )`)
+        .select(`id, created_at, status, total_amount, patient_name, lab_id, labs ( name )`)
         .order('created_at', { ascending: false });
 
       if (bookingsData) {
@@ -63,7 +79,7 @@ export default function AllDataDashboard() {
         const completedTests = bookings.filter((b) => b.status?.toLowerCase() === 'completed');
         const totalRevenue = completedTests.reduce((sum, curr) => sum + (Number(curr.total_amount) || 0), 0);
         
-        // 🛑 Platform Commission Calculation
+        // 🛑 Platform Commission Calculation (Lifetime)
         const totalCommission = totalRevenue * (rate / 100);
 
         setStats({
@@ -74,26 +90,46 @@ export default function AllDataDashboard() {
           platformCommission: totalCommission
         });
 
-        // 🛑 Lab-wise Performance & Commission Calculation
-        const labDataMap: Record<string, { count: number, revenue: number }> = {};
+        // 🛑 Lab-wise Performance & Current/Lifetime Calculations
+        const labDataMap: Record<string, { count: number, total_revenue: number, current_revenue: number }> = {};
         
         completedTests.forEach((b) => {
-          const labName = b.labs?.name || 'Unknown Lab';
+          const labId = b.lab_id;
+          if (!labId) return;
+
           const price = Number(b.total_amount) || 0;
+          const bookingDate = new Date(b.created_at);
+          const labDetails = labInfoMap[labId] || { name: 'Unknown Lab', last_cleared: null, last_paid: 0 };
           
-          if (!labDataMap[labName]) {
-            labDataMap[labName] = { count: 0, revenue: 0 };
+          if (!labDataMap[labId]) {
+            labDataMap[labId] = { count: 0, total_revenue: 0, current_revenue: 0 };
           }
-          labDataMap[labName].count += 1;
-          labDataMap[labName].revenue += price;
+          
+          labDataMap[labId].count += 1;
+          labDataMap[labId].total_revenue += price; // Add to lifetime
+
+          // Check if this booking is AFTER the last cleared date (or if never cleared)
+          if (!labDetails.last_cleared || bookingDate > new Date(labDetails.last_cleared)) {
+            labDataMap[labId].current_revenue += price; // Add to current cycle
+          }
         });
 
-        const performanceArray = Object.keys(labDataMap).map(name => ({
-          lab_name: name,
-          test_count: labDataMap[name].count,
-          total_revenue: labDataMap[name].revenue,
-          platform_cut: labDataMap[name].revenue * (rate / 100) // Har lab se kitna mila
-        })).sort((a, b) => b.total_revenue - a.total_revenue); 
+        const performanceArray = Object.keys(labDataMap).map(labId => {
+          const labDetails = labInfoMap[labId];
+          const lifetimeRev = labDataMap[labId].total_revenue;
+          const currentRev = labDataMap[labId].current_revenue;
+
+          return {
+            lab_name: labDetails?.name || 'Unknown Lab',
+            test_count: labDataMap[labId].count,
+            total_revenue: lifetimeRev,
+            current_revenue: currentRev,
+            platform_cut: Math.round(lifetimeRev * (rate / 100)), // Lifetime cut
+            current_cut: Math.round(currentRev * (rate / 100)),   // Current unpaid cut
+            last_paid_amount: labDetails?.last_paid || 0,
+            last_cleared_date: labDetails?.last_cleared || null
+          };
+        }).sort((a, b) => b.total_revenue - a.total_revenue); 
 
         setLabPerformance(performanceArray);
 
@@ -124,13 +160,12 @@ export default function AllDataDashboard() {
         <p className="text-gray-500 mt-2">High-level metrics for investors. Current Platform Commission is <strong className="text-blue-600">{commissionRate}%</strong>.</p>
       </div>
 
-      {/* 🛑 NAYA: 5 Top Metric Cards */}
+      {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-10">
         <StatCard title="Total Users" value={stats.totalPatients} icon={<Users size={22} className="text-blue-600" />} bg="bg-blue-50" />
         <StatCard title="Partner Labs" value={stats.totalLabs} icon={<Building2 size={22} className="text-purple-600" />} bg="bg-purple-50" />
         <StatCard title="Tests Done" value={stats.totalTestsDone} icon={<FlaskConical size={22} className="text-green-600" />} bg="bg-green-50" />
         <StatCard title="Gross Revenue" value={`Rs. ${stats.revenueGenerated.toLocaleString()}`} icon={<TrendingUp size={22} className="text-gray-600" />} bg="bg-gray-100" />
-        {/* 🛑 HAMARA PROFIT WALA CARD */}
         <StatCard title="Our Commission" value={`Rs. ${stats.platformCommission.toLocaleString()}`} icon={<Wallet size={22} className="text-orange-600" />} bg="bg-orange-50" highlight={true} />
       </div>
 
@@ -173,7 +208,7 @@ export default function AllDataDashboard() {
           </div>
         </div>
 
-        {/* Right: Lab Performance Leaderboard (With Commission) */}
+        {/* Right: Lab Performance Leaderboard (Detailed Breakdown) */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Top Revenue Labs</h2>
           <div className="space-y-6">
@@ -182,27 +217,50 @@ export default function AllDataDashboard() {
             ) : (
               labPerformance.slice(0, 5).map((lab, index) => (
                 <div key={index} className="flex flex-col gap-2 border-b border-gray-50 pb-4 last:border-0 last:pb-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900 text-sm leading-tight">{lab.lab_name}</p>
-                        <p className="text-xs text-gray-500 font-medium">{lab.test_count} Tests Done</p>
-                      </div>
+                  
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm leading-tight">{lab.lab_name}</p>
+                      <p className="text-xs text-gray-500 font-medium">{lab.test_count} Total Tests Done</p>
                     </div>
                   </div>
-                  {/* Revenue & Commission Breakdown */}
-                  <div className="flex justify-between bg-gray-50 rounded-lg p-3 mt-1">
-                    <div>
-                      <p className="text-[10px] text-gray-500 font-bold uppercase">Total Billed</p>
-                      <p className="text-sm font-bold text-gray-700">Rs. {lab.total_revenue.toLocaleString()}</p>
+
+                  {/* 🛑 NAYA: Revenue & Commission Detailed Breakdown */}
+                  <div className="flex flex-col gap-1.5 bg-gray-50 rounded-xl p-3.5 mt-1 border border-gray-100">
+                    
+                    {/* LIFETIME SECTION */}
+                    <div className="flex justify-between items-center">
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Lifetime Billed</p>
+                      <p className="text-xs font-bold text-gray-700">Rs. {lab.total_revenue.toLocaleString()}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-orange-500 font-bold uppercase">Our Cut ({commissionRate}%)</p>
-                      <p className="text-sm font-extrabold text-orange-600">+Rs. {lab.platform_cut.toLocaleString()}</p>
+                    <div className="flex justify-between items-center">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Lifetime Cut ({commissionRate}%)</p>
+                      <p className="text-xs font-bold text-gray-500">Rs. {lab.platform_cut.toLocaleString()}</p>
                     </div>
+
+                    <div className="border-t border-gray-200 my-1 pt-1"></div>
+
+                    {/* CURRENT CYCLE SECTION */}
+                    <div className="flex justify-between items-center">
+                      <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wide">Current Cycle (Unpaid)</p>
+                      <p className="text-xs font-bold text-blue-700">Rs. {lab.current_revenue.toLocaleString()}</p>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <p className="text-[10px] text-red-500 font-bold uppercase tracking-wide">Current Due Cut</p>
+                      <p className="text-xs font-extrabold text-red-600">+Rs. {lab.current_cut.toLocaleString()}</p>
+                    </div>
+                    
+                    {/* LAST PAID SECTION */}
+                    {lab.last_cleared_date && (
+                      <div className="flex justify-between items-center border-t border-gray-200 mt-1 pt-1.5">
+                        <p className="text-[10px] text-green-600 font-bold uppercase tracking-wide">Last Paid Amount</p>
+                        <p className="text-xs font-bold text-green-700">Rs. {lab.last_paid_amount.toLocaleString()}</p>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               ))
@@ -215,7 +273,7 @@ export default function AllDataDashboard() {
   );
 }
 
-// StatCard Component (Modified slightly for the highlight feature)
+// StatCard Component
 function StatCard({ title, value, icon, bg, highlight = false }: { title: string, value: string | number, icon: React.ReactNode, bg: string, highlight?: boolean }) {
   return (
     <div className={`bg-white p-5 rounded-3xl shadow-sm border ${highlight ? 'border-orange-200 shadow-orange-100' : 'border-gray-100'} flex items-center gap-4`}>

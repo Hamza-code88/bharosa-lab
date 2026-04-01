@@ -1,4 +1,3 @@
-// app/dashboard/page.tsx
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -11,64 +10,73 @@ export default function DashboardPage() {
     newOrders: 0,
     catalogTests: 0,
     totalPatients: 0,
-    commissionCut: 0, // 🛑 NAYA: Platform ka commission
-    netProfit: 0      // 🛑 NAYA: Lab ka asal munafa
+    commissionCut: 0, // 🛑 Current Due Commission
+    netProfit: 0      // 🛑 Current Net Profit
   });
   
-  const [commissionRate, setCommissionRate] = useState(0); // Platform kitne % le raha hai
+  const [commissionRate, setCommissionRate] = useState(0); 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
       setIsLoading(true);
       try {
-        // 1. Logged in user aur Lab ID nikalna
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) return;
 
-        const { data: lab } = await supabase.from('labs').select('id').eq('owner_id', session.user.id).single();
+        // 🛑 NAYA: Fetch `last_cleared_date` along with ID
+        const { data: lab } = await supabase
+          .from('labs')
+          .select('id, last_cleared_date')
+          .eq('owner_id', session.user.id)
+          .single();
+          
         if (!lab) {
           setIsLoading(false);
           return;
         }
 
-        // 2. Fetch Platform Commission Rate
         const { data: settings } = await supabase.from('app_settings').select('commission_percentage').eq('id', 1).single();
         const rate = settings?.commission_percentage || 0;
         setCommissionRate(rate);
 
-        // 3. Bookings data fetch karna
         const { data: bookings } = await supabase
           .from('bookings')
-          .select('total_amount, status, patient_phone')
+          .select('total_amount, status, patient_phone, created_at')
           .eq('lab_id', lab.id);
 
-        // 4. Catalog Tests count karna
         const { count: testCount } = await supabase
           .from('lab_tests')
           .select('*', { count: 'exact', head: true })
           .eq('lab_id', lab.id);
 
         if (bookings) {
-          // Calculations
-          const totalEarnings = bookings
+          // 🛑 NAYA LOGIC: Filter bookings for the CURRENT billing cycle only
+          const currentCycleBookings = bookings.filter(b => {
+            if (!lab.last_cleared_date) return true; // Never cleared, count all
+            return new Date(b.created_at) > new Date(lab.last_cleared_date);
+          });
+
+          // Calculations for Current Cycle Earnings
+          const currentCycleEarnings = currentCycleBookings
             .filter(b => b.status.toLowerCase() === 'completed')
             .reduce((sum, b) => sum + (b.total_amount || 0), 0);
 
+          // These can remain life-time or switch to current cycle. Keeping them life-time for better overview.
           const pendingOrders = bookings.filter(b => b.status.toLowerCase() === 'pending').length;
           const uniquePatientsCount = new Set(bookings.map(b => b.patient_phone)).size;
 
-          // 🛑 COMMISSION CALCULATIONS
-          const cut = totalEarnings * (rate / 100);
-          const profit = totalEarnings - cut;
+          // 🛑 CURRENT COMMISSION DUE
+          const currentDue = currentCycleEarnings * (rate / 100);
+          const currentProfit = currentCycleEarnings - currentDue;
 
           setStats({
-            earnings: totalEarnings,
+            earnings: currentCycleEarnings,
             newOrders: pendingOrders,
             catalogTests: testCount || 0,
             totalPatients: uniquePatientsCount,
-            commissionCut: cut,
-            netProfit: profit
+            commissionCut: Math.round(currentDue),
+            netProfit: Math.round(currentProfit)
           });
         }
       } catch (error) {
@@ -84,14 +92,14 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
       <div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard Overview</h2>
-        <p className="text-gray-500 mt-1 text-sm sm:text-base">Monitor your laboratory&apos;s daily performance and test requests.</p>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Current Billing Cycle</h2>
+        <p className="text-gray-500 mt-1 text-sm sm:text-base">Monitor your performance since your last bill clearance.</p>
       </div>
 
-      {/* 🌟 NAYA: Financial Summary (Mobile Par Upar Neechay, Desktop Par Saath Saath) */}
+      {/* Financial Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
         
-        {/* Total Billed */}
+        {/* Total Billed (Current Cycle) */}
         <div className="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-gray-50 rounded-bl-full -mr-4 -mt-4 z-0"></div>
           <div className="relative z-10">
@@ -100,14 +108,14 @@ export default function DashboardPage() {
                 <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
               </div>
             </div>
-            <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Billed Amount</p>
+            <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Billed (Current Cycle)</p>
             <h3 className="text-2xl sm:text-3xl font-black text-gray-800 flex items-center gap-2">
               {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-gray-300" /> : `Rs. ${stats.earnings.toLocaleString()}`}
             </h3>
           </div>
         </div>
 
-        {/* Platform Commission */}
+        {/* Platform Commission (Current Due) */}
         <div className="bg-red-50 p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-red-100 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-bl-full -mr-4 -mt-4 z-0"></div>
           <div className="relative z-10">
@@ -119,14 +127,14 @@ export default function DashboardPage() {
                 {commissionRate}% Cut
               </span>
             </div>
-            <p className="text-[10px] sm:text-xs font-bold text-red-400 uppercase tracking-wider mb-1">Platform Commission</p>
+            <p className="text-[10px] sm:text-xs font-bold text-red-400 uppercase tracking-wider mb-1">Current Due Commission</p>
             <h3 className="text-2xl sm:text-3xl font-black text-red-600 flex items-center gap-2">
               {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-red-300" /> : `- Rs. ${stats.commissionCut.toLocaleString()}`}
             </h3>
           </div>
         </div>
 
-        {/* Net Profit (Highlight) */}
+        {/* Net Profit (Current Cycle) */}
         <div className="bg-green-500 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg shadow-green-500/30 relative overflow-hidden sm:col-span-2 lg:col-span-1">
           <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white/10 rounded-bl-full -mr-4 -mt-4 z-0"></div>
           <div className="relative z-10">
@@ -138,7 +146,7 @@ export default function DashboardPage() {
                 <TrendingUp size={12} strokeWidth={3} /> Clear Profit
               </span>
             </div>
-            <p className="text-[10px] sm:text-xs font-bold text-green-100 uppercase tracking-wider mb-1">Your Net Earnings</p>
+            <p className="text-[10px] sm:text-xs font-bold text-green-100 uppercase tracking-wider mb-1">Net Earnings (Current Cycle)</p>
             <h3 className="text-3xl sm:text-4xl font-black text-white flex items-center gap-2 tracking-tight">
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-green-200" /> : `Rs. ${stats.netProfit.toLocaleString()}`}
             </h3>
@@ -147,7 +155,7 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* 🌟 Other Stats Cards */}
+      {/* Other Stats Cards (Kept as Lifetime/Current pending state) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         
         <div className="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">

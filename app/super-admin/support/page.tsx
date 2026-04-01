@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 export default function SupportSettingsPage() {
   const [phone, setPhone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
-  const [commission, setCommission] = useState(''); // 🛑 NAYA STATE
+  const [commission, setCommission] = useState(''); 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -45,19 +45,29 @@ export default function SupportSettingsPage() {
     setMessage({ text: '', type: '' });
 
     try {
-      const { error } = await supabase
+      // 1. Update App Settings
+      const { error: settingsError } = await supabase
         .from('app_settings')
         .update({ 
           support_phone: phone, 
           support_whatsapp: whatsapp,
-          commission_percentage: Number(commission) || 0 // 🛑 SAVE COMMISSION
+          commission_percentage: Number(commission) || 0 
         })
         .eq('id', 1);
 
-      if (error) throw error;
+      if (settingsError) throw settingsError;
       
-      setMessage({ text: 'Settings updated successfully!', type: 'success' });
-      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+      // 🛑 THE MAGIC TRICK: Update ALL labs' phone numbers to this new official number
+      // Is se mobile app mein auto sab labs pe yehi number show hoga bina app update kiye!
+      const { error: labsError } = await supabase
+        .from('labs')
+        .update({ phone_number: phone })
+        .not('id', 'is', null); // Supabase hack to update all rows
+
+      if (labsError) throw labsError;
+      
+      setMessage({ text: 'Settings updated & applied to all labs successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 4000);
     } catch (error: any) {
       setMessage({ text: error.message || 'Failed to update settings.', type: 'error' });
     } finally {
@@ -86,7 +96,7 @@ export default function SupportSettingsPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
         <form onSubmit={handleSave} className="space-y-6">
           
-          {/* 🛑 COMMISSION INPUT */}
+          {/* COMMISSION INPUT */}
           <div className="space-y-2 bg-blue-50/50 p-6 rounded-xl border border-blue-100">
             <label className="text-sm font-extrabold text-blue-900 uppercase tracking-wider">
               Platform Commission (%)
@@ -112,7 +122,8 @@ export default function SupportSettingsPage() {
 
           {/* Direct Call Input */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Direct Call Number</label>
+            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Official Direct Call Number</label>
+            <p className="text-xs text-gray-500 mb-2">This number will automatically be assigned to ALL labs in the mobile app.</p>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Phone className="h-5 w-5 text-gray-400" /></div>
               <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} required className="block w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none font-medium" />
@@ -121,7 +132,7 @@ export default function SupportSettingsPage() {
 
           {/* WhatsApp Input */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">WhatsApp Number</label>
+            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Official WhatsApp Number</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><MessageCircle className="h-5 w-5 text-[#25D366]" /></div>
               <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required className="block w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 outline-none font-medium" />
@@ -131,7 +142,7 @@ export default function SupportSettingsPage() {
           <div className="pt-4">
             <button type="submit" disabled={isSaving} className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 disabled:opacity-70">
               {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-              {isSaving ? 'Saving...' : 'Save Settings'}
+              {isSaving ? 'Saving & Applying to Labs...' : 'Save Settings'}
             </button>
           </div>
 

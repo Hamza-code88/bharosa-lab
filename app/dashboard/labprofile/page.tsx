@@ -19,12 +19,30 @@ export default function PremiumLabProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Platform number fetch karne ke liye state
+  const [platformNumber, setPlatformNumber] = useState('Fetching...');
+
   const logoInputRef = useRef<HTMLInputElement>(null);
   const ownerInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchExistingData();
+    fetchPlatformSettings(); 
   }, []);
+
+  const fetchPlatformSettings = async () => {
+    try {
+      const { data } = await supabase.from('app_settings').select('support_phone').eq('id', 1).single();
+      if (data && data.support_phone) {
+        setPlatformNumber(data.support_phone);
+      } else {
+        setPlatformNumber('+92 3XX XXXXXXX');
+      }
+    } catch (err) {
+      console.error("Error fetching platform settings:", err);
+      setPlatformNumber('Official Support');
+    }
+  };
 
   const fetchExistingData = async () => {
     try {
@@ -87,8 +105,8 @@ export default function PremiumLabProfile() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!labData.name?.trim() || !labData.city?.trim() || !labData.phone_number?.trim()) {
-      alert("Lab Name, City, and Phone Number are required!");
+    if (!labData.name?.trim() || !labData.city?.trim()) {
+      alert("Lab Name and City are required!");
       return;
     }
 
@@ -109,7 +127,8 @@ export default function PremiumLabProfile() {
         city: labData.city,
         address: labData.address,
         experience_years: labData.experience_years === '' ? null : parseInt(String(labData.experience_years)),
-        phone_number: labData.phone_number,
+        // 🛑 THE MAGIC TRICK: Hamesha platform number save karo, taake app mein yahi show ho
+        phone_number: platformNumber !== 'Fetching...' ? platformNumber : '+92 3XX XXXXXXX', 
         speciality: labData.speciality,
         owner_name: labData.owner_name,
         logo_url: labData.logo_url,
@@ -160,7 +179,6 @@ export default function PremiumLabProfile() {
               <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-5 sm:mb-6 flex items-center gap-2">
                 <ImageIcon className="w-5 h-5 text-purple-600" /> Branding & Images
               </h2>
-              {/* 🛑 FIX: Mobile par grid-cols-1, laptop par grid-cols-2 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                 <div className="space-y-3">
                   <label className="text-[10px] sm:text-xs font-bold text-gray-500 tracking-wider uppercase">Lab Logo (Max 4MB)</label>
@@ -170,7 +188,7 @@ export default function PremiumLabProfile() {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] sm:text-xs font-bold text-gray-500 tracking-wider uppercase">Owner Photo (Max 4MB)</label>
+                  <label className="text-[10px] sm:text-xs font-bold text-gray-500 tracking-wider uppercase">Lab Photo (Max 4MB)</label>
                   <input type="file" ref={ownerInputRef} onChange={(e) => onFileChange(e, 'owner')} accept="image/*" className="hidden" />
                   <button type="button" onClick={() => ownerInputRef.current?.click()} className="relative w-full h-32 border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-blue-500 hover:bg-blue-50 transition-all overflow-hidden bg-gray-50">
                     {labData.owner_image ? <Image src={labData.owner_image} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" alt="Owner" unoptimized /> : <><User className="text-gray-400" /><span className="text-xs sm:text-sm font-medium text-gray-500">Upload Photo</span></>}
@@ -187,7 +205,6 @@ export default function PremiumLabProfile() {
 
         {/* RIGHT: Live Mobile Preview */}
         <div className="lg:col-span-5 flex justify-center lg:sticky lg:top-10 h-fit order-1 lg:order-2 mb-4 lg:mb-0">
-          {/* 🛑 FIX: scale down on very small screens so it doesn't overflow */}
           <div className="w-[300px] sm:w-[320px] bg-gray-50 border-[6px] sm:border-[8px] border-gray-900 rounded-[35px] sm:rounded-[40px] shadow-2xl overflow-hidden relative h-[600px] sm:h-[650px] flex flex-col transform origin-top scale-[0.95] sm:scale-100">
             <div className="absolute top-0 inset-x-0 h-5 sm:h-6 bg-gray-900 rounded-b-xl sm:rounded-b-2xl mx-14 sm:mx-16 z-20"></div>
             
@@ -253,7 +270,7 @@ export default function PremiumLabProfile() {
                 <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-gray-100 space-y-2 sm:space-y-3">
                   <div className="flex items-center gap-2 sm:gap-3 text-gray-600">
                     <Phone size={12} className="text-blue-500 sm:w-[14px] sm:h-[14px]" />
-                    <span className="text-[10px] sm:text-xs truncate">{labData.phone_number || 'Phone Number'}</span>
+                    <span className="text-[10px] sm:text-xs truncate font-bold text-blue-600">{platformNumber}</span>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3 text-gray-600">
                     <Activity size={12} className="text-blue-500 sm:w-[14px] sm:h-[14px]" />

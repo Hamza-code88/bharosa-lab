@@ -1,10 +1,10 @@
-import { Building2 } from 'lucide-react';
+import { Building2, Info } from 'lucide-react';
 
 export interface LabData {
   name?: string;
   owner_name?: string;
   speciality?: string;
-  phone_number?: string;
+  phone_number?: string; // Isko interface mein rehne diya hai taake purana state error na de
   city?: string;
   experience_years?: string | number;
   address?: string;
@@ -65,18 +65,6 @@ export default function BasicInfo({ labData, setLabData }: Props) {
         </div>
 
         <div>
-          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Phone Number *</label>
-          <input 
-            type="tel" 
-            value={labData.phone_number || ''} 
-            onChange={(e) => setLabData({...labData, phone_number: e.target.value})}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 rounded-xl border border-gray-200 text-sm sm:text-base focus:bg-white focus:border-blue-600 outline-none transition-all" 
-            placeholder="+92 300 1234567" 
-            required
-          />
-        </div>
-
-        <div>
           <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">City *</label>
           <input 
             type="text" 
@@ -88,7 +76,7 @@ export default function BasicInfo({ labData, setLabData }: Props) {
           />
         </div>
 
-        <div className="md:col-span-2">
+        <div>
           <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Experience (Years)</label>
           <input 
             type="number" 
@@ -109,6 +97,18 @@ export default function BasicInfo({ labData, setLabData }: Props) {
             placeholder="Shop #, Plaza Name, Main Road..." 
           />
         </div>
+
+        {/* 🛑 NAYA: Phone number input hata kar Notice laga diya */}
+        <div className="md:col-span-2 bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-start gap-3 mt-2">
+          <Info className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-bold text-blue-900">Platform Support Number Active</p>
+            <p className="text-xs text-blue-700 mt-1 leading-relaxed">
+              Your personal phone number has been hidden for security and quality control. Patients will contact our official platform support team directly for any queries related to your lab.
+            </p>
+          </div>
+        </div>
+
       </div>
     </div>
   );

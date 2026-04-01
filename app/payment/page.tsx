@@ -3,16 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2, UploadCloud, CheckCircle, AlertTriangle, Image as ImageIcon } from 'lucide-react';
+import { Loader2, UploadCloud, CheckCircle, AlertTriangle, Image as ImageIcon, RefreshCw } from 'lucide-react';
 
 export default function PaymentPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [dueAmount, setDueAmount] = useState(0);
   const [labId, setLabId] = useState('');
+  const [threshold, setThreshold] = useState(2000);
   
-  // 🛑 NAYA: Alag Alag Bank Details States
+  // Bank Details States
   const [epDetails, setEpDetails] = useState({ number: '', title: '' });
   const [jcDetails, setJcDetails] = useState({ number: '', title: '' });
 
@@ -33,7 +35,7 @@ export default function PaymentPage() {
         return;
       }
 
-      const { data: lab } = await supabase.from('labs').select('id, payment_status').eq('owner_id', session.user.id).single();
+      const { data: lab } = await supabase.from('labs').select('id, payment_status, last_cleared_date').eq('owner_id', session.user.id).single();
       if (lab) {
         setLabId(lab.id);
         
@@ -43,20 +45,27 @@ export default function PaymentPage() {
           return;
         }
 
-        const { data: bookings } = await supabase
-          .from('bookings')
-          .select('total_amount')
-          .eq('lab_id', lab.id)
-          .eq('status', 'Completed');
-
-        // 🛑 NAYA: Fetching Separate Settings
         const { data: settings } = await supabase.from('app_settings').select('*').eq('id', 1).single();
         const rate = settings?.commission_percentage || 0;
+        const currentThreshold = settings?.commission_threshold || 2000;
+        setThreshold(currentThreshold);
         
         if (settings) {
           setEpDetails({ number: settings.easypaisa_number || 'N/A', title: settings.easypaisa_title || 'N/A' });
           setJcDetails({ number: settings.jazzcash_number || 'N/A', title: settings.jazzcash_title || 'N/A' });
         }
+
+        let query = supabase
+          .from('bookings')
+          .select('total_amount')
+          .eq('lab_id', lab.id)
+          .eq('status', 'Completed');
+
+        if (lab.last_cleared_date) {
+          query = query.gte('created_at', lab.last_cleared_date);
+        }
+
+        const { data: bookings } = await query;
 
         let totalBilled = 0;
         if (bookings) {
@@ -70,6 +79,33 @@ export default function PaymentPage() {
       console.error(error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // 🛑 NAYA: Status Check Function
+  const checkApprovalStatus = async () => {
+    setIsCheckingStatus(true);
+    try {
+      const { data: lab } = await supabase
+        .from('labs')
+        .select('payment_status, is_active')
+        .eq('id', labId)
+        .single();
+
+      if (lab) {
+        if (lab.payment_status === 'cleared' && lab.is_active) {
+          // Admin ne approve kar diya hai!
+          alert("Your payment has been approved! Redirecting to Dashboard.");
+          router.replace('/dashboard');
+        } else {
+          // Abhi bhi pending hai
+          alert("Your payment is still under review by the Admin.");
+        }
+      }
+    } catch (error) {
+      console.error("Error checking status:", error);
+    } finally {
+      setIsCheckingStatus(false);
     }
   };
 
@@ -131,7 +167,21 @@ export default function PaymentPage() {
           <p className="text-gray-500 mb-6 font-medium text-lg leading-relaxed">
             آپ کی رسید موصول ہو گئی ہے۔ ایڈمن کی تصدیق کے بعد آپ کا ڈیش بورڈ کھول دیا جائے گا۔ شکریہ!
           </p>
-          <button onClick={() => router.replace('/')} className="text-blue-600 font-bold hover:underline">Back to Home</button>
+          
+          {/* 🛑 NAYA: Check Status Button instead of Back to Home */}
+          <div className="flex flex-col gap-4">
+            <button 
+              onClick={checkApprovalStatus} 
+              disabled={isCheckingStatus}
+              className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50"
+            >
+              {isCheckingStatus ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
+              Check Approval Status
+            </button>
+            <button onClick={() => router.replace('/')} className="text-gray-500 font-bold hover:text-gray-800 transition-colors text-sm">
+              Sign Out / Back to Home
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -146,16 +196,15 @@ export default function PaymentPage() {
           
           <div className="relative z-10 text-center mb-8">
             <AlertTriangle className="w-14 h-14 text-red-500 mx-auto mb-4" />
-            <h2 className="text-3xl font-extrabold text-gray-900">Platform Bill Due</h2>
-            <p className="text-red-600 font-bold text-xl mt-2">Rs. {dueAmount.toLocaleString()} <span className="text-sm font-normal text-gray-500">(یا پرانا بقایا بل)</span></p>
+            <h2 className="text-3xl font-extrabold text-gray-900">Platform Limit Reached</h2>
+            <p className="text-red-600 font-bold text-xl mt-2">Rs. {dueAmount.toLocaleString()} <span className="text-sm font-normal text-gray-500">(بذمہ لیب)</span></p>
           </div>
 
           <div className="bg-blue-50 p-5 rounded-2xl mb-8 border border-blue-100">
             <p className="text-right text-blue-900 font-bold text-lg leading-relaxed dir-rtl" style={{ direction: 'rtl' }}>
-              معزز پارٹنر، آپ کے پلیٹ فارم کے استعمال کا بل ادا کرنا باقی ہے۔ ڈیش بورڈ کا استعمال جاری رکھنے کے لیے براہ کرم نیچے دیے گئے اکاؤنٹ میں رقم جمع کرائیں اور رسید اپ لوڈ کریں۔
+              معزز پارٹنر، آپ کا کمیشن بل مقررہ حد (Rs. {threshold.toLocaleString()}) سے تجاوز کر گیا ہے۔ ڈیش بورڈ کا استعمال جاری رکھنے کے لیے براہ کرم بقایا رقم جمع کرائیں اور رسید اپ لوڈ کریں۔
             </p>
             
-            {/* 🛑 NAYA: Separate Account Details Display */}
             <div className="mt-4 flex flex-col gap-3">
               <div className="bg-white p-4 rounded-xl border border-green-200 shadow-sm text-left">
                 <p className="text-green-600 text-xs font-extrabold uppercase tracking-wider mb-1">Easypaisa</p>
