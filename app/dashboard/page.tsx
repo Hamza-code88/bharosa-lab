@@ -59,7 +59,7 @@ export default function DashboardPage() {
 
           // Calculations for Current Cycle Earnings
           const currentCycleEarnings = currentCycleBookings
-            .filter(b => b.status.toLowerCase() === 'completed')
+            .filter(b => ['completed', 'sample_collected', 'report_uploaded'].includes(b.status.toLowerCase()))
             .reduce((sum, b) => sum + (b.total_amount || 0), 0);
 
           // These can remain life-time or switch to current cycle. Keeping them life-time for better overview.

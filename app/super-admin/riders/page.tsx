@@ -19,9 +19,10 @@ export default function RiderManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Delivery Rates States
+  // Delivery Rates & Distance States
   const [baseFee, setBaseFee] = useState<number>(50);
   const [perKmFee, setPerKmFee] = useState<number>(20);
+  const [maxDistance, setMaxDistance] = useState<number>(10);
   const [isSavingRates, setIsSavingRates] = useState(false);
 
   // 🛑 NAYA: Add Rider Modal States
@@ -40,6 +41,7 @@ export default function RiderManagementPage() {
       if (data) {
         setBaseFee(data.base_delivery_fee || 50);
         setPerKmFee(data.per_km_fee || 20);
+        setMaxDistance(data.max_order_distance_km || 10);
       }
     } catch (err) {
       console.error("Error fetching rates:", err);
@@ -69,7 +71,8 @@ export default function RiderManagementPage() {
     try {
       const { error } = await supabase
         .from('app_settings')
-        .upsert({ id: 1, base_delivery_fee: baseFee, per_km_fee: perKmFee });
+        .update({ base_delivery_fee: baseFee, per_km_fee: perKmFee, max_order_distance_km: maxDistance })
+        .eq('id', 1);
       
       if (error) throw error;
       alert("Delivery rates updated successfully! New user app bookings will use these rates.");
@@ -216,8 +219,8 @@ export default function RiderManagementPage() {
             <Settings size={28} />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-gray-900">Global Delivery Rates</h2>
-            <p className="text-sm text-gray-500 font-medium">Update checkout fees. Syncs instantly with user apps.</p>
+            <h2 className="text-xl font-extrabold text-gray-900">Global Delivery Settings</h2>
+            <p className="text-sm text-gray-500 font-medium">Update checkout fees & limits. Syncs instantly with user apps.</p>
           </div>
         </div>
 
@@ -238,6 +241,16 @@ export default function RiderManagementPage() {
               value={perKmFee}
               onChange={(e) => setPerKmFee(Number(e.target.value))}
               className="w-full md:w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-gray-900 text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+            />
+          </div>
+          <div className="flex flex-col flex-1 md:flex-none">
+            <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Max Distance (KM)</label>
+            <input
+              type="number"
+              value={maxDistance}
+              onChange={(e) => setMaxDistance(Number(e.target.value))}
+              className="w-full md:w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-gray-900 text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              title="Distance limit for ordering. Beyond this, user gets blocked."
             />
           </div>
           <button

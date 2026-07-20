@@ -279,9 +279,9 @@ export default function BookingsManagerPage() {
                         
                         {isCompleted && (
                           booking.report_url ? (
-                            <div className="w-full sm:w-auto justify-center bg-green-50 text-green-700 border border-green-200 text-xs sm:text-sm rounded-xl px-4 py-2.5 sm:py-2.5 font-bold flex items-center gap-2">
-                              <FileCheck className="w-4 h-4" /> Report Uploaded
-                            </div>
+                            <a href={booking.report_url} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto justify-center bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs sm:text-sm rounded-xl px-4 py-2.5 sm:py-2.5 font-bold flex items-center gap-2 transition-colors">
+                              <FileCheck className="w-4 h-4" /> Download Report
+                            </a>
                           ) : (
                             <button
                               onClick={() => triggerFileSelect(booking.id)}

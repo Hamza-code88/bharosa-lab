@@ -12,6 +12,8 @@ export interface LabData {
   longitude?: string | number;
   logo_url?: string;
   owner_image?: string;
+  opening_time?: string;
+  closing_time?: string;
   [key: string]: any; 
 }
 
@@ -84,6 +86,26 @@ export default function BasicInfo({ labData, setLabData }: Props) {
             onChange={(e) => setLabData({...labData, experience_years: e.target.value})}
             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 rounded-xl border border-gray-200 text-black text-sm sm:text-base focus:bg-white focus:border-blue-600 outline-none transition-all" 
             placeholder="e.g. 10" 
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Opening Time</label>
+          <input 
+            type="time" 
+            value={labData.opening_time || '09:00:00'} 
+            onChange={(e) => setLabData({...labData, opening_time: e.target.value})}
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 rounded-xl border border-gray-200 text-black text-sm sm:text-base focus:bg-white focus:border-blue-600 outline-none transition-all" 
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Closing Time</label>
+          <input 
+            type="time" 
+            value={labData.closing_time || '22:00:00'} 
+            onChange={(e) => setLabData({...labData, closing_time: e.target.value})}
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-50 rounded-xl border border-gray-200 text-black text-sm sm:text-base focus:bg-white focus:border-blue-600 outline-none transition-all" 
           />
         </div>
         

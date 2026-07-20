@@ -137,6 +137,8 @@ export default function PremiumLabProfile() {
         is_verified: true, 
         lat: labData.latitude ? parseFloat(String(labData.latitude)) : null,
         lng: labData.longitude ? parseFloat(String(labData.longitude)) : null,
+        opening_time: labData.opening_time || '09:00:00',
+        closing_time: labData.closing_time || '22:00:00',
       };
 
       const { error } = await supabase.from('labs').upsert(dataToSave, { onConflict: 'owner_id' });

@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import AddTestForm from '../../components/lab-tests/AddTestForm';
+import BulkAddTestForm from '../../components/lab-tests/BulkAddTestForm';
 import TestList from '../../components/lab-tests/TestList';
-// 🛑 FIX: Star icon yahan se bhi hata diya
 import { Loader2, Info, MapPin, CheckCircle2, ShoppingCart, ArrowLeft, MoreHorizontal } from 'lucide-react';
 
 export interface LabInfo {
@@ -46,6 +46,7 @@ export default function TestsManagerPage() {
   const [masterTests, setMasterTests] = useState<MasterTestItem[]>([]);
   const [myTests, setMyTests] = useState<LabTestItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [addMode, setAddMode] = useState<'single' | 'bulk'>('single');
 
   const [preview, setPreview] = useState<PreviewState>({
     title: 'Select a Test Name',
@@ -101,15 +102,40 @@ export default function TestsManagerPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">
-        
         {/* Left Side: Logic (Form + TestList) */}
         <div className="xl:col-span-8 space-y-6 sm:space-y-8 order-2 xl:order-1">
-          <AddTestForm 
-            labId={labInfo.id} 
-            masterTests={masterTests} 
-            onTestAdded={loadData} 
-            onPreviewChange={(data) => setPreview(data as PreviewState)} 
-          />
+          {/* Tabs for Add/Bulk */}
+          <div className="flex gap-4 mb-4">
+            <button 
+              onClick={() => setAddMode('single')}
+              className={`px-4 py-2 font-bold rounded-xl transition-all ${addMode === 'single' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              Add Single Test
+            </button>
+            <button 
+              onClick={() => setAddMode('bulk')}
+              className={`px-4 py-2 font-bold rounded-xl transition-all ${addMode === 'bulk' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              Bulk Add (Fast)
+            </button>
+          </div>
+
+          {addMode === 'single' ? (
+            <AddTestForm 
+              labId={labInfo.id} 
+              masterTests={masterTests} 
+              onTestAdded={loadData} 
+              onPreviewChange={(data) => setPreview(data as PreviewState)} 
+            />
+          ) : (
+            <BulkAddTestForm 
+              labId={labInfo.id}
+              masterTests={masterTests}
+              myTests={myTests}
+              onTestsUpdated={loadData}
+            />
+          )}
+
           <TestList 
             tests={myTests} 
             onTestDeleted={loadData} 

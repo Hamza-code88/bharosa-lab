@@ -4,18 +4,19 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Megaphone, Bike, ShieldAlert, PhoneCall, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Megaphone, Bike, ShieldAlert, PhoneCall, CreditCard, FileText, Settings } from 'lucide-react';
 
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const navItems = [
     { name: 'All Data (Analytics)', href: '/super-admin/dashboard', icon: LayoutDashboard },
+    { name: 'Orders Management', href: '/super-admin/orders', icon: FileText },
     { name: 'Ad Manager', href: '/super-admin/ads', icon: Megaphone },
     { name: 'Rider Management', href: '/super-admin/riders', icon: Bike },
     { name: 'Support Settings', href: '/super-admin/support', icon: PhoneCall },
-    // 🛑 NAYA LINK ADD KIYA HAI
     { name: 'Billing & Approvals', href: '/super-admin/billing', icon: CreditCard },
+    { name: 'Platform Settings', href: '/super-admin/settings', icon: Settings },
   ];
 
   return (

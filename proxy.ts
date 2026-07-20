@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// 🛑 FIX: Yahan 'middleware' ki jagah 'proxy' likh diya
+// 🛑 FIX: Next.js 16 uses 'proxy.ts' instead of 'middleware.ts'
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 

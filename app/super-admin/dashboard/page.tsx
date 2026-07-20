@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Users, FlaskConical, Building2, TrendingUp, Loader2, Wallet } from 'lucide-react';
+import { Users, FlaskConical, Building2, TrendingUp, Loader2, Wallet, PhoneCall } from 'lucide-react';
 
 export interface DashboardStats {
   totalPatients: number;
@@ -10,6 +10,8 @@ export interface DashboardStats {
   totalTestsDone: number;
   revenueGenerated: number;
   platformCommission: number;
+  appOrders: number;
+  manualOrders: number;
 }
 
 export interface LabPerformance {
@@ -33,7 +35,7 @@ export interface RecentBooking {
 }
 
 export default function AllDataDashboard() {
-  const [stats, setStats] = useState<DashboardStats>({ totalPatients: 0, totalLabs: 0, totalTestsDone: 0, revenueGenerated: 0, platformCommission: 0 });
+  const [stats, setStats] = useState<DashboardStats>({ totalPatients: 0, totalLabs: 0, totalTestsDone: 0, revenueGenerated: 0, platformCommission: 0, appOrders: 0, manualOrders: 0 });
   const [labPerformance, setLabPerformance] = useState<LabPerformance[]>([]);
   const [recentTests, setRecentTests] = useState<RecentBooking[]>([]);
   const [commissionRate, setCommissionRate] = useState(0);
@@ -70,24 +72,29 @@ export default function AllDataDashboard() {
       // 3. Fetch Bookings
       const { data: bookingsData } = await supabase
         .from('bookings')
-        .select(`id, created_at, status, total_amount, patient_name, lab_id, labs ( name )`)
+        .select(`id, created_at, status, total_amount, patient_name, lab_id, booking_source, labs ( name )`)
         .order('created_at', { ascending: false });
 
       if (bookingsData) {
         const bookings = bookingsData as any[]; 
 
-        const completedTests = bookings.filter((b) => b.status?.toLowerCase() === 'completed');
+        const completedTests = bookings.filter((b) => ['completed', 'sample_collected', 'report_uploaded'].includes(b.status?.toLowerCase()));
         const totalRevenue = completedTests.reduce((sum, curr) => sum + (Number(curr.total_amount) || 0), 0);
         
         // 🛑 Platform Commission Calculation (Lifetime)
         const totalCommission = totalRevenue * (rate / 100);
+
+        const appOrdersCount = bookings.filter((b) => b.booking_source !== 'whatsapp_call').length;
+        const manualOrdersCount = bookings.filter((b) => b.booking_source === 'whatsapp_call').length;
 
         setStats({
           totalPatients: patientCount || 0,
           totalLabs: labCount || 0,
           totalTestsDone: completedTests.length,
           revenueGenerated: totalRevenue,
-          platformCommission: totalCommission
+          platformCommission: totalCommission,
+          appOrders: appOrdersCount,
+          manualOrders: manualOrdersCount
         });
 
         // 🛑 Lab-wise Performance & Current/Lifetime Calculations
@@ -161,10 +168,12 @@ export default function AllDataDashboard() {
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-6 mb-10">
         <StatCard title="Total Users" value={stats.totalPatients} icon={<Users size={22} className="text-blue-600" />} bg="bg-blue-50" />
         <StatCard title="Partner Labs" value={stats.totalLabs} icon={<Building2 size={22} className="text-purple-600" />} bg="bg-purple-50" />
         <StatCard title="Tests Done" value={stats.totalTestsDone} icon={<FlaskConical size={22} className="text-green-600" />} bg="bg-green-50" />
+        <StatCard title="App Orders" value={stats.appOrders} icon={<Users size={22} className="text-indigo-600" />} bg="bg-indigo-50" />
+        <StatCard title="Call Orders" value={stats.manualOrders} icon={<PhoneCall size={22} className="text-emerald-600" />} bg="bg-emerald-50" />
         <StatCard title="Gross Revenue" value={`Rs. ${stats.revenueGenerated.toLocaleString()}`} icon={<TrendingUp size={22} className="text-gray-600" />} bg="bg-gray-100" />
         <StatCard title="Our Commission" value={`Rs. ${stats.platformCommission.toLocaleString()}`} icon={<Wallet size={22} className="text-orange-600" />} bg="bg-orange-50" highlight={true} />
       </div>
