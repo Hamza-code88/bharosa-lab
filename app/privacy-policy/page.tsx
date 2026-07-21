@@ -43,16 +43,28 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Your Rights</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Account Deletion and Data Retention</h2>
+            <p className="leading-relaxed mb-3">
+              We respect your right to manage your data. If you wish to delete your account and all associated personal data from our systems, you can request an account deletion at any time.
+            </p>
+            <ul className="list-disc pl-5 space-y-2 leading-relaxed mb-3">
+              <li><strong>How to request deletion:</strong> Send an email to <strong>bharosalabo@gmail.com</strong> with the subject "Account Deletion Request" from your registered email address, or contact our support number.</li>
+              <li><strong>What data is deleted:</strong> Your personal profile, location data, saved addresses, and all identifiable medical reports will be permanently deleted from our active database within 30 days of the request.</li>
+              <li><strong>What data is kept:</strong> Anonymized transaction records and payment history may be retained for up to 5 years strictly for accounting, legal, and tax compliance purposes.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Your Rights</h2>
             <p className="leading-relaxed">
               You have the right to request access to the data we hold about you, and to request correction or deletion of your personal data. If you have any concerns regarding your privacy, please contact our support team.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Contact Us</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Contact Us</h2>
             <p className="leading-relaxed">
-              If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at support@bharosalab.com.
+              If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at <strong>bharosalabo@gmail.com</strong>.
             </p>
           </section>
         </div>
