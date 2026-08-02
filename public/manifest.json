@@ -2,7 +2,7 @@
   "name": "Bharosa Lab",
   "short_name": "Bharosa Lab",
   "description": "Manage lab bookings and system settings",
-  "start_url": "/super-admin/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563EB",

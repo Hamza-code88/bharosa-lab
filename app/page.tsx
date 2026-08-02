@@ -1,9 +1,22 @@
 "use client";
+import React from 'react';
 import Image from 'next/image';
 import { supabase } from '../lib/supabase';
 import logo from '../public/logo.png';
 
+import { useRouter } from 'next/navigation';
+
 export default function AdminLoginPage() {
+  const router = useRouter();
+
+  React.useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/dashboard');
+      }
+    });
+  }, [router]);
 
   const handleGoogleLogin = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
