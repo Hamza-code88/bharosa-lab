@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, TestTube, ClipboardList, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import logo from '../../public/logo.png'; 
 
-export default function Sidebar() {
+export default function Sidebar({ isMobileMenuOpen = false, onCloseMobile }: { isMobileMenuOpen?: boolean, onCloseMobile?: () => void }) {
   const pathname = usePathname(); 
   
   // 🛑 NAYA: Sidebar ko collapse/expand karne ke liye state
@@ -15,8 +15,9 @@ export default function Sidebar() {
   // 🛑 NAYA: Screen size check karne ke liye (Responsive Design)
   useEffect(() => {
     const handleResize = () => {
-      // Agar screen choti hai (Tablet/Mobile) toh auto-collapse kar do
-      if (window.innerWidth < 1024) {
+      // Agar screen tablet hai (768px se 1024px) toh auto-collapse kar do
+      // Lakin mobile (<768px) pe false rakho kyunke wahan hamburger menu se full w-64 khulna chahiye
+      if (window.innerWidth >= 768 && window.innerWidth < 1024) {
         setIsCollapsed(true);
       } else {
         setIsCollapsed(false);
@@ -37,13 +38,22 @@ export default function Sidebar() {
   ];
 
   return (
-    // Width ab state ke hisaab se change hogi (w-64 ya w-20)
-    <aside className={`bg-white border-r border-gray-100 flex flex-col shadow-sm z-20 transition-all duration-300 relative ${isCollapsed ? 'w-20' : 'w-64'}`}>
-      
-      {/* 🛑 NAYA: Collapse/Expand Button */}
+    <>
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm transition-opacity"
+          onClick={onCloseMobile}
+        ></div>
+      )}
+
+      {/* Sidebar Container */}
+      <aside className={`fixed md:relative inset-y-0 left-0 bg-white border-r border-gray-100 flex flex-col shadow-2xl md:shadow-sm z-50 transition-all duration-300 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} ${isCollapsed ? 'md:w-20' : 'md:w-64'} w-64`}>
+        
+        {/* 🛑 NAYA: Collapse/Expand Button (Hidden on Mobile) */}
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-10 bg-blue-600 text-white p-1 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-50 flex items-center justify-center"
+        className="hidden md:flex absolute -right-3 top-10 bg-blue-600 text-white p-1 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-50 items-center justify-center"
       >
         {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
@@ -109,5 +119,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

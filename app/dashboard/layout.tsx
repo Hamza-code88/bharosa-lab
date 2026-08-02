@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Menu } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 
 export default function DashboardLayout({
@@ -14,6 +14,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // 🛑 NAYA: Mobile Sidebar State
 
   // 🛑 NAYA: High-Security Auth & Rolling Threshold Guard
   useEffect(() => {
@@ -100,12 +101,20 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-[#F8FAFC]">
       
-      <Sidebar />
+      <Sidebar isMobileMenuOpen={isMobileMenuOpen} onCloseMobile={() => setIsMobileMenuOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         
-        <header className="h-[72px] bg-white border-b border-gray-100 flex items-center justify-between px-8 shadow-sm z-0">
-          <h1 className="text-xl font-extrabold text-gray-800 tracking-tight">Partner Portal</h1>
+        <header className="h-[72px] bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-8 shadow-sm z-10">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)} 
+              className="md:hidden p-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              <Menu size={24} />
+            </button>
+            <h1 className="text-xl font-extrabold text-gray-800 tracking-tight">Partner Portal</h1>
+          </div>
           
           <div className="flex items-center gap-3">
             <span className="relative flex h-3 w-3">

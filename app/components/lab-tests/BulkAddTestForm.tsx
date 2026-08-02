@@ -97,7 +97,7 @@ export default function BulkAddTestForm({ labId, masterTests, myTests, onTestsUp
   };
 
   return (
-    <div className="bg-white rounded-[24px] p-6 sm:p-8 shadow-xl shadow-gray-200/50 border border-gray-100 h-full flex flex-col">
+    <div className="bg-white rounded-[24px] p-3 sm:p-8 shadow-xl shadow-gray-200/50 border border-gray-100 h-full flex flex-col">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center">
