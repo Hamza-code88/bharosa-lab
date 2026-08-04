@@ -3,30 +3,57 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2, UploadCloud, CheckCircle, AlertTriangle, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import { Loader2, UploadCloud, CheckCircle, ShieldCheck, RefreshCw, Mail, AlertTriangle, Building2, UserCircle2, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
-export default function PaymentPage() {
+export default function CheckoutPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  
+  const [paymentType, setPaymentType] = useState<'registration' | 'commission' | 'none'>('none');
   const [dueAmount, setDueAmount] = useState(0);
   const [labId, setLabId] = useState('');
-  const [threshold, setThreshold] = useState(2000);
+  const [labName, setLabName] = useState('');
   
-  // Bank Details States
+  // Bank Details
   const [epDetails, setEpDetails] = useState({ number: '', title: '' });
   const [jcDetails, setJcDetails] = useState({ number: '', title: '' });
+  const [spDetails, setSpDetails] = useState({ number: '', title: '' });
 
-  const [paymentMethod, setPaymentMethod] = useState('Easypaisa');
+  // Form State
+  const [selectedMethod, setSelectedMethod] = useState<'Easypaisa' | 'JazzCash' | 'SadaPay'>('Easypaisa');
   const [senderName, setSenderName] = useState('');
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
+  // Timer State (5 minutes = 300 seconds)
+  const [timeLeft, setTimeLeft] = useState(300);
+  const [isPending, setIsPending] = useState(false);
+
   useEffect(() => {
-    fetchDues();
+    fetchStatus();
   }, []);
 
-  const fetchDues = async () => {
+  // Timer Effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isPending && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    }
+    
+    // Auto-check status every 30 seconds while pending
+    if (isPending && timeLeft > 0 && timeLeft % 30 === 0) {
+      checkApprovalStatus(false); 
+    }
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [isPending, timeLeft]);
+
+  const fetchStatus = async () => {
     setIsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -35,45 +62,61 @@ export default function PaymentPage() {
         return;
       }
 
-      const { data: lab } = await supabase.from('labs').select('id, payment_status, last_cleared_date').eq('owner_id', session.user.id).single();
+      const { data: lab } = await supabase
+        .from('labs')
+        .select('id, name, payment_status, last_cleared_date, is_registered_paid, registration_status, created_at')
+        .eq('owner_id', session.user.id)
+        .single();
+        
       if (lab) {
         setLabId(lab.id);
+        setLabName(lab.name);
         
-        if (lab.payment_status === 'submitted') {
-          setDueAmount(-1); 
+        if (lab.registration_status === 'pending_approval' || lab.payment_status === 'submitted') {
+          setIsPending(true);
           setIsLoading(false);
           return;
         }
 
         const { data: settings } = await supabase.from('app_settings').select('*').eq('id', 1).single();
-        const rate = settings?.commission_percentage || 0;
-        const currentThreshold = settings?.commission_threshold || 2000;
-        setThreshold(currentThreshold);
-        
-        if (settings) {
-          setEpDetails({ number: settings.easypaisa_number || 'N/A', title: settings.easypaisa_title || 'N/A' });
-          setJcDetails({ number: settings.jazzcash_number || 'N/A', title: settings.jazzcash_title || 'N/A' });
+        const regFee = settings?.registration_fee || 5000;
+
+        const trialDays = Math.floor((Date.now() - new Date(lab.created_at).getTime()) / (1000 * 60 * 60 * 24));
+        if (trialDays >= 30 && !lab.is_registered_paid) {
+          setPaymentType('registration');
+          setDueAmount(regFee); 
+        } else {
+          const rate = settings?.commission_percentage || 0;
+          const threshold = settings?.commission_threshold || 2000;
+          
+          if (settings) {
+            setEpDetails({ number: settings.easypaisa_number || 'N/A', title: settings.easypaisa_title || 'N/A' });
+            setJcDetails({ number: settings.jazzcash_number || 'N/A', title: settings.jazzcash_title || 'N/A' });
+            setSpDetails({ number: settings.sadapay_number || 'N/A', title: settings.sadapay_title || 'N/A' });
+          }
+
+          let query = supabase
+            .from('bookings')
+            .select('total_amount')
+            .eq('lab_id', lab.id)
+            .eq('status', 'Completed');
+
+          if (lab.last_cleared_date) {
+            query = query.gte('created_at', lab.last_cleared_date);
+          }
+
+          const { data: bookings } = await query;
+          let totalBilled = bookings ? bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0) : 0;
+          const commissionDue = Math.round(totalBilled * (rate / 100));
+          
+          if (commissionDue >= threshold) {
+            setPaymentType('commission');
+            setDueAmount(commissionDue);
+          } else {
+            router.replace('/dashboard');
+            return;
+          }
         }
-
-        let query = supabase
-          .from('bookings')
-          .select('total_amount')
-          .eq('lab_id', lab.id)
-          .eq('status', 'Completed');
-
-        if (lab.last_cleared_date) {
-          query = query.gte('created_at', lab.last_cleared_date);
-        }
-
-        const { data: bookings } = await query;
-
-        let totalBilled = 0;
-        if (bookings) {
-          totalBilled = bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
-        }
-        
-        const commissionDue = Math.round(totalBilled * (rate / 100));
-        setDueAmount(commissionDue);
       }
     } catch (error) {
       console.error(error);
@@ -82,30 +125,24 @@ export default function PaymentPage() {
     }
   };
 
-  // 🛑 NAYA: Status Check Function
-  const checkApprovalStatus = async () => {
-    setIsCheckingStatus(true);
+  const checkApprovalStatus = async (showAlert = true) => {
     try {
       const { data: lab } = await supabase
         .from('labs')
-        .select('payment_status, is_active')
+        .select('payment_status, registration_status, is_active')
         .eq('id', labId)
         .single();
 
       if (lab) {
-        if (lab.payment_status === 'cleared' && lab.is_active) {
-          // Admin ne approve kar diya hai!
-          alert("Your payment has been approved! Redirecting to Dashboard.");
+        if ((lab.payment_status === 'cleared' || lab.registration_status === 'cleared') && lab.is_active) {
+          if (showAlert) alert("Payment verified! Welcome back.");
           router.replace('/dashboard');
         } else {
-          // Abhi bhi pending hai
-          alert("Your payment is still under review by the Admin.");
+          if (showAlert) alert("Still verifying. Please wait.");
         }
       }
     } catch (error) {
-      console.error("Error checking status:", error);
-    } finally {
-      setIsCheckingStatus(false);
+      console.error("Status check error:", error);
     }
   };
 
@@ -118,171 +155,240 @@ export default function PaymentPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!screenshot || !senderName) {
-      alert('براہ کرم سکرین شاٹ اور نام فراہم کریں۔');
+      alert('Please provide your name and upload the payment receipt.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const fileExt = screenshot.name.split('.').pop();
-      const fileName = `${labId}-${Date.now()}.${fileExt}`;
+      const formData = new FormData();
+      formData.append('file', screenshot);
       
-      const { error: uploadError } = await supabase.storage.from('receipts').upload(fileName, screenshot);
-      if (uploadError) throw uploadError;
+      const messageContent = `**New Payment Proof Uploaded**\n**Lab Name:** ${labName}\n**Sender Name:** ${senderName}\n**Amount Due:** Rs. ${dueAmount}\n**Payment Type:** ${paymentType}\n**Method:** ${selectedMethod}`;
+      formData.append('content', messageContent);
 
-      const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
-      
-      const { error: dbError } = await supabase
-        .from('labs')
-        .update({
-          payment_status: 'submitted',
-          payment_method: paymentMethod,
-          sender_name: senderName,
-          payment_screenshot: publicUrlData.publicUrl
-        })
-        .eq('id', labId);
+      const res = await fetch('/api/payment', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Failed to submit receipt securely.');
 
+      const updatePayload = paymentType === 'registration' ? { registration_status: 'pending_approval' } : { payment_status: 'submitted' };
+      const { error: dbError } = await supabase.from('labs').update(updatePayload).eq('id', labId);
       if (dbError) throw dbError;
 
-      alert('رسید کامیابی سے جمع کر دی گئی ہے!');
-      setDueAmount(-1); 
-
+      setIsPending(true);
+      setTimeLeft(300); // Start timer
     } catch (error: any) {
-      alert('Error uploading receipt: ' + error.message);
+      alert('Error: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="w-10 h-10 animate-spin text-blue-600" /></div>;
 
-  if (dueAmount === -1) {
+  // 🛑 Pending Verification (Timer UI)
+  if (isPending) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="bg-white p-8 rounded-3xl shadow-lg max-w-md w-full text-center border-t-8 border-yellow-400">
-          <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-yellow-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Verification Pending</h2>
-          <p className="text-gray-500 mb-6 font-medium text-lg leading-relaxed">
-            آپ کی رسید موصول ہو گئی ہے۔ ایڈمن کی تصدیق کے بعد آپ کا ڈیش بورڈ کھول دیا جائے گا۔ شکریہ!
-          </p>
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4 sm:px-6 font-sans">
+        <div className="bg-white p-8 sm:p-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] max-w-md w-full text-center border border-gray-100">
           
-          {/* 🛑 NAYA: Check Status Button instead of Back to Home */}
-          <div className="flex flex-col gap-4">
-            <button 
-              onClick={checkApprovalStatus} 
-              disabled={isCheckingStatus}
-              className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50"
-            >
-              {isCheckingStatus ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
-              Check Approval Status
+          {timeLeft > 0 ? (
+            <>
+              <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Verifying Payment</h2>
+              <p className="text-gray-500 mb-6 text-sm">Please wait while our admin confirms your transaction.</p>
+              
+              <div className="text-5xl font-black text-gray-900 tracking-tighter mb-8 tabular-nums">
+                {formatTime(timeLeft)}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertTriangle className="w-10 h-10 text-orange-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Verification Delayed</h2>
+              <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+                It seems our team is taking longer than usual to verify your payment. Please contact support.
+              </p>
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-6 flex items-center justify-center gap-3">
+                <Mail className="w-5 h-5 text-gray-400" />
+                <span className="font-bold text-gray-900">bharosalabo@gmail.com</span>
+              </div>
+            </>
+          )}
+
+          <div className="flex flex-col gap-3">
+            <button onClick={() => checkApprovalStatus(true)} className="w-full bg-gray-900 hover:bg-black text-white font-semibold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+              <RefreshCw className="w-5 h-5" /> Check Status Now
             </button>
-            <button onClick={() => router.replace('/')} className="text-gray-500 font-bold hover:text-gray-800 transition-colors text-sm">
-              Sign Out / Back to Home
+            <button onClick={() => router.replace('/')} className="text-gray-400 font-medium hover:text-gray-900 transition-colors text-sm py-2">
+              Sign Out
             </button>
           </div>
+
         </div>
       </div>
     );
   }
 
+  // 🛑 Main Checkout UI (Hostinger Style)
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="sm:mx-auto sm:w-full sm:max-w-lg">
+    <div className="min-h-screen bg-[#F4F7F6] flex flex-col items-center py-10 px-4 sm:px-6 font-sans">
+      
+      {/* Header */}
+      <div className="w-full max-w-4xl mb-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="w-8 h-8 text-indigo-600" />
+          <h1 className="text-2xl font-bold text-gray-900">Secure Checkout</h1>
+        </div>
+        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm">
+          <Building2 className="w-4 h-4 text-gray-400" />
+          <span className="text-sm font-bold text-gray-700">{labName}</span>
+        </div>
+      </div>
+
+      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
-        <div className="bg-white py-8 px-6 shadow-xl rounded-3xl sm:px-10 border-t-8 border-red-500 relative overflow-hidden">
-          <div className="absolute top-0 right-0 bg-red-50 p-4 rounded-bl-full w-24 h-24 -mr-4 -mt-4 z-0"></div>
+        {/* Left Column: Payment Methods Accordion */}
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-2">1. Choose Payment Method</h2>
           
-          <div className="relative z-10 text-center mb-8">
-            <AlertTriangle className="w-14 h-14 text-red-500 mx-auto mb-4" />
-            <h2 className="text-3xl font-extrabold text-gray-900">Platform Limit Reached</h2>
-            <p className="text-red-600 font-bold text-xl mt-2">Rs. {dueAmount.toLocaleString()} <span className="text-sm font-normal text-gray-500">(بذمہ لیب)</span></p>
-          </div>
-
-          <div className="bg-blue-50 p-5 rounded-2xl mb-8 border border-blue-100">
-            <p className="text-right text-blue-900 font-bold text-lg leading-relaxed dir-rtl" style={{ direction: 'rtl' }}>
-              معزز پارٹنر، آپ کا کمیشن بل مقررہ حد (Rs. {threshold.toLocaleString()}) سے تجاوز کر گیا ہے۔ ڈیش بورڈ کا استعمال جاری رکھنے کے لیے براہ کرم بقایا رقم جمع کرائیں اور رسید اپ لوڈ کریں۔
-            </p>
-            
-            <div className="mt-4 flex flex-col gap-3">
-              <div className="bg-white p-4 rounded-xl border border-green-200 shadow-sm text-left">
-                <p className="text-green-600 text-xs font-extrabold uppercase tracking-wider mb-1">Easypaisa</p>
-                <p className="text-gray-900 font-bold text-lg">{epDetails.number}</p>
-                <p className="text-gray-500 text-sm font-medium mt-0.5">Title: <span className="text-gray-900">{epDetails.title}</span></p>
-              </div>
-              
-              <div className="bg-white p-4 rounded-xl border border-red-200 shadow-sm text-left">
-                <p className="text-red-600 text-xs font-extrabold uppercase tracking-wider mb-1">JazzCash</p>
-                <p className="text-gray-900 font-bold text-lg">{jcDetails.number}</p>
-                <p className="text-gray-500 text-sm font-medium mt-0.5">Title: <span className="text-gray-900">{jcDetails.title}</span></p>
-              </div>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            
-            <div>
-              <label className="block text-sm font-bold text-gray-700">Payment Method</label>
-              <select 
-                value={paymentMethod} 
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="mt-1 block w-full pl-3 pr-10 py-3 text-base border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-xl"
+          {[
+            { id: 'Easypaisa', name: 'Easypaisa', details: epDetails, color: 'text-[#00C853]', bg: 'bg-[#00C853]', img: 'https://easypaisa.com.pk/wp-content/uploads/2023/10/easypaisa-icon.png' },
+            { id: 'JazzCash', name: 'JazzCash', details: jcDetails, color: 'text-[#E31837]', bg: 'bg-[#E31837]', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/JazzCash_logo.svg/1200px-JazzCash_logo.svg.png' },
+            { id: 'SadaPay', name: 'SadaPay', details: spDetails, color: 'text-[#FF6654]', bg: 'bg-[#FF6654]', img: 'https://sadapay.pk/wp-content/uploads/2021/04/sadapay-logo.png' }
+          ].map((method) => {
+            const isSelected = selectedMethod === method.id;
+            return (
+              <div 
+                key={method.id} 
+                onClick={() => setSelectedMethod(method.id as any)}
+                className={`bg-white rounded-2xl border transition-all cursor-pointer overflow-hidden ${isSelected ? 'border-indigo-500 shadow-md ring-1 ring-indigo-500' : 'border-gray-200 hover:border-gray-300 shadow-sm'}`}
               >
-                <option className="text-gray-900">Easypaisa</option>
-                <option className="text-gray-900">JazzCash</option>
-                <option className="text-gray-900">Bank Transfer</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700">Account Owner Name (بھیجنے والے کا نام)</label>
-              <input 
-                type="text" 
-                required
-                value={senderName}
-                onChange={(e) => setSenderName(e.target.value)}
-                placeholder="e.g. Ali Raza"
-                className="mt-1 appearance-none block w-full px-4 py-3 border border-gray-300 bg-white text-gray-900 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Upload Screenshot (رسید کی تصویر)</label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                <div className="space-y-2 text-center">
-                  {screenshot ? (
-                    <div className="flex flex-col items-center">
-                      <ImageIcon className="mx-auto h-10 w-10 text-green-500" />
-                      <p className="text-sm text-green-600 font-bold mt-2">{screenshot.name}</p>
-                      <button type="button" onClick={() => setScreenshot(null)} className="text-xs text-red-500 mt-1 font-bold">Remove</button>
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-indigo-600' : 'border-gray-300'}`}>
+                      {isSelected && <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full" />}
                     </div>
-                  ) : (
-                    <>
-                      <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600 justify-center">
-                        <label className="relative cursor-pointer rounded-md font-bold text-blue-600 hover:text-blue-500 focus-within:outline-none">
-                          <span>Upload Receipt</span>
-                          <input type="file" accept="image/*" className="sr-only" onChange={handleFileUpload} required />
-                        </label>
-                      </div>
-                      <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-                    </>
-                  )}
+                    <span className="font-bold text-gray-900 text-lg">{method.name}</span>
+                  </div>
+                  {/* Optional: Add small logos if you have local assets, otherwise omit */}
                 </div>
+                
+                {/* Expanded Details Form */}
+                {isSelected && (
+                  <div className="px-4 pb-5 pt-2 bg-gray-50/50 border-t border-gray-100">
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-5">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Send exact amount to:</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <p className="text-gray-500 text-sm mb-0.5">Account Title</p>
+                          <p className="font-bold text-gray-900">{method.details.title || 'Not Configured'}</p>
+                        </div>
+                        <div className="sm:text-right">
+                          <p className="text-gray-500 text-sm mb-0.5">Account Number</p>
+                          <p className={`font-black text-xl tracking-wide ${method.color}`}>{method.details.number || 'Not Configured'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <form id="payment-form" onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Your Name (Sender)</label>
+                        <div className="relative">
+                          <UserCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                          <input 
+                            type="text" 
+                            required
+                            value={senderName}
+                            onChange={(e) => setSenderName(e.target.value)}
+                            placeholder="e.g. Ali Raza"
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Payment Receipt (Screenshot)</label>
+                        <div className="flex items-center justify-center w-full">
+                          <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${screenshot ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-white hover:bg-gray-50'}`}>
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              {screenshot ? (
+                                <>
+                                  <CheckCircle className="w-8 h-8 text-green-500 mb-2" />
+                                  <p className="text-sm font-bold text-green-700">{screenshot.name}</p>
+                                </>
+                              ) : (
+                                <>
+                                  <UploadCloud className="w-8 h-8 text-gray-400 mb-2" />
+                                  <p className="text-sm font-medium text-gray-600"><span className="font-bold text-indigo-600">Click to upload</span> or drag and drop</p>
+                                </>
+                              )}
+                            </div>
+                            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} required />
+                          </label>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </div>
+            );
+          })}
+        </div>
+
+        {/* Right Column: Order Summary */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sticky top-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Order Summary</h2>
+            
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-gray-500 font-medium">Description</span>
+              <span className="font-bold text-gray-900 text-right">
+                {paymentType === 'registration' ? 'Platform Registration' : 'Commission Dues'}
+              </span>
+            </div>
+            
+            <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-100">
+              <span className="text-gray-500 font-medium">Account Status</span>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                Locked
+              </span>
+            </div>
+
+            <div className="flex justify-between items-end mb-8">
+              <span className="text-gray-900 font-bold text-lg">Total Due</span>
+              <span className="text-3xl font-black text-gray-900">Rs. {dueAmount.toLocaleString()}</span>
             </div>
 
             <button 
               type="submit" 
+              form="payment-form"
               disabled={isSubmitting || !screenshot}
-              className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-sm text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
-              {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Submit Payment Proof'}
+              {isSubmitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  Submit Payment <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
-
-          </form>
+            <p className="text-center text-xs text-gray-400 mt-4 font-medium flex items-center justify-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5" /> Encrypted & Secure
+            </p>
+          </div>
         </div>
+
       </div>
     </div>
   );

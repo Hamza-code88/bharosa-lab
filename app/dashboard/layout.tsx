@@ -26,16 +26,43 @@ export default function DashboardLayout({
         return;
       }
 
-      // 1. Fetch Lab Security Data (Now using last_cleared_date)
+      // 1. Fetch Lab Security Data
       const { data: lab } = await supabase
         .from('labs')
-        .select('id, is_active, payment_status, last_cleared_date')
+        .select('id, name, is_active, payment_status, last_cleared_date, created_at, is_registered_paid, registration_status')
         .eq('owner_id', session.user.id)
-        .single();
+        .maybeSingle();
 
-      if (!lab) {
-        setIsAuthorized(true);
+      const currentPath = window.location.pathname;
+
+      // 1.1 ONBOARDING: No Lab Profile
+      if (!lab || !lab.name) {
+        if (!currentPath.includes('/dashboard/labprofile')) {
+          router.replace('/dashboard/labprofile');
+        } else {
+          setIsAuthorized(true);
+        }
         return;
+      }
+
+      // 1.2 ONBOARDING: No Tests Added
+      const { count: testCount } = await supabase.from('lab_tests').select('*', { count: 'exact', head: true }).eq('lab_id', lab.id);
+      if (testCount === 0) {
+        if (!currentPath.includes('/dashboard/tests') && !currentPath.includes('/dashboard/labprofile')) {
+          router.replace('/dashboard/tests');
+        } else {
+          setIsAuthorized(true);
+        }
+        return;
+      }
+
+      // 1.3 TRIAL CHECK: 30 Days Registration
+      if (lab.created_at) {
+        const trialDays = Math.floor((Date.now() - new Date(lab.created_at).getTime()) / (1000 * 60 * 60 * 24));
+        if (trialDays >= 30 && !lab.is_registered_paid) {
+          router.replace('/payment');
+          return;
+        }
       }
 
       // 2. Super Admin Manual Block Check

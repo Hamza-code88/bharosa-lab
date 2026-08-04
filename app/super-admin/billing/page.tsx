@@ -19,6 +19,8 @@ export default function BillingApprovalsPage() {
   const [epTitle, setEpTitle] = useState('');
   const [jcNumber, setJcNumber] = useState('');
   const [jcTitle, setJcTitle] = useState('');
+  const [spNumber, setSpNumber] = useState('');
+  const [spTitle, setSpTitle] = useState('');
   const [commissionThreshold, setCommissionThreshold] = useState('');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
@@ -75,6 +77,8 @@ export default function BillingApprovalsPage() {
       setEpTitle(data.easypaisa_title || '');
       setJcNumber(data.jazzcash_number || '');
       setJcTitle(data.jazzcash_title || '');
+      setSpNumber(data.sadapay_number || '');
+      setSpTitle(data.sadapay_title || '');
       setCommissionThreshold(data.commission_threshold?.toString() || '2000');
     }
   };
@@ -89,6 +93,8 @@ export default function BillingApprovalsPage() {
       easypaisa_title: epTitle,
       jazzcash_number: jcNumber,
       jazzcash_title: jcTitle,
+      sadapay_number: spNumber,
+      sadapay_title: spTitle,
       commission_threshold: newThreshold
     }).eq('id', 1);
     

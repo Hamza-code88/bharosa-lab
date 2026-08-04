@@ -8,6 +8,11 @@ export default function PlatformSettingsPage() {
   const [startTime, setStartTime] = useState('09:00:00');
   const [endTime, setEndTime] = useState('18:00:00');
   const [isPaused, setIsPaused] = useState(false);
+  const [registrationFee, setRegistrationFee] = useState(5000);
+  const [facebookUrl, setFacebookUrl] = useState('');
+  const [twitterUrl, setTwitterUrl] = useState('');
+  const [instagramUrl, setInstagramUrl] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -27,6 +32,11 @@ export default function PlatformSettingsPage() {
         setStartTime(data.service_start_time || '09:00:00');
         setEndTime(data.service_end_time || '18:00:00');
         setIsPaused(data.is_service_paused || false);
+        setFacebookUrl(data.facebook_url || '');
+        setTwitterUrl(data.twitter_url || '');
+        setInstagramUrl(data.instagram_url || '');
+        setLinkedinUrl(data.linkedin_url || '');
+        if (data.registration_fee !== undefined) setRegistrationFee(data.registration_fee);
       }
     } catch (err) {
       console.error(err);
@@ -44,6 +54,11 @@ export default function PlatformSettingsPage() {
         service_start_time: startTime,
         service_end_time: endTime,
         is_service_paused: isPaused,
+        facebook_url: facebookUrl,
+        twitter_url: twitterUrl,
+        instagram_url: instagramUrl,
+        linkedin_url: linkedinUrl,
+        registration_fee: registrationFee,
         updated_at: new Date().toISOString()
       };
 
@@ -78,7 +93,7 @@ export default function PlatformSettingsPage() {
           <p className="text-sm text-gray-500 mt-1">During these hours, patients can book tests for today. Outside these hours, they will be informed that the rider will arrive tomorrow.</p>
         </div>
         
-        <div className="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Service Start Time</label>
             <input 
@@ -94,6 +109,15 @@ export default function PlatformSettingsPage() {
               type="time" 
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-lg font-medium"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Lab Registration Fee (Rs.)</label>
+            <input 
+              type="number" 
+              value={registrationFee}
+              onChange={(e) => setRegistrationFee(Number(e.target.value))}
               className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-lg font-medium"
             />
           </div>
@@ -126,6 +150,58 @@ export default function PlatformSettingsPage() {
               ⚠️ Warning: Service is currently paused! Patients will see an unavailability message in the mobile app.
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
+        <div className="p-5 sm:p-6 border-b border-gray-100 bg-gray-50/50">
+          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            Social Media Links
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">These links will appear in the Patient App's Profile section. Leave blank to hide an icon.</p>
+        </div>
+        
+        <div className="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Facebook URL</label>
+            <input 
+              type="url" 
+              value={facebookUrl}
+              onChange={(e) => setFacebookUrl(e.target.value)}
+              placeholder="https://facebook.com/..."
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-medium"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Twitter / X URL</label>
+            <input 
+              type="url" 
+              value={twitterUrl}
+              onChange={(e) => setTwitterUrl(e.target.value)}
+              placeholder="https://twitter.com/..."
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-medium"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Instagram URL</label>
+            <input 
+              type="url" 
+              value={instagramUrl}
+              onChange={(e) => setInstagramUrl(e.target.value)}
+              placeholder="https://instagram.com/..."
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-medium"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">LinkedIn URL</label>
+            <input 
+              type="url" 
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
+              placeholder="https://linkedin.com/in/..."
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-medium"
+            />
+          </div>
         </div>
       </div>
 
