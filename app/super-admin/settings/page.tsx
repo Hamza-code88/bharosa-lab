@@ -28,6 +28,12 @@ export default function PlatformSettingsPage() {
         .limit(1)
         .maybeSingle();
 
+      const { data: appData } = await supabase
+        .from('app_settings')
+        .select('registration_fee')
+        .eq('id', 1)
+        .maybeSingle();
+
       if (data) {
         setStartTime(data.service_start_time || '09:00:00');
         setEndTime(data.service_end_time || '18:00:00');
@@ -36,7 +42,10 @@ export default function PlatformSettingsPage() {
         setTwitterUrl(data.twitter_url || '');
         setInstagramUrl(data.instagram_url || '');
         setLinkedinUrl(data.linkedin_url || '');
-        if (data.registration_fee !== undefined) setRegistrationFee(data.registration_fee);
+      }
+      
+      if (appData && appData.registration_fee !== undefined) {
+        setRegistrationFee(appData.registration_fee);
       }
     } catch (err) {
       console.error(err);
@@ -58,7 +67,6 @@ export default function PlatformSettingsPage() {
         twitter_url: twitterUrl,
         instagram_url: instagramUrl,
         linkedin_url: linkedinUrl,
-        registration_fee: registrationFee,
         updated_at: new Date().toISOString()
       };
 
@@ -67,6 +75,9 @@ export default function PlatformSettingsPage() {
       } else {
         await supabase.from('platform_settings').insert(payload);
       }
+
+      // 🔴 Update Registration Fee in app_settings (id=1)
+      await supabase.from('app_settings').update({ registration_fee: registrationFee }).eq('id', 1);
       
       alert('Platform Settings Updated Successfully!');
     } catch (err: any) {

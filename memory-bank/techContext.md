@@ -1,28 +1,23 @@
 # Tech Context
 
-## Core Technologies
+## Technology Stack
 - **Framework:** Next.js 16.1.6 (App Router)
-- **Library:** React 19.2.3 & React DOM 19.2.3
-- **Language:** TypeScript 5+
-
-## Backend / Database / BaaS
-- **Supabase:** `@supabase/supabase-js` v2.97.0 (Authentication, PostgreSQL Database, Realtime Subscriptions, Storage)
-
-## Styling & UI
-- **TailwindCSS:** v4 (with `@tailwindcss/postcss`)
-- **Icons:** `lucide-react`
-- **Toasts/Alerts:** `react-hot-toast`
-- **Progress Bar:** `nextjs-toploader`
-
-## Forms & Validation
-- **Form Management:** `react-hook-form`
-- **Schema Validation:** `zod`
-- **Resolvers:** `@hookform/resolvers`
-
-## Analytics
-- **Vercel Analytics:** `@vercel/analytics`
+- **Library:** React 19.2.3, React DOM 19.2.3
+- **Styling:** Tailwind CSS (v4 PostCSS)
+- **Icons:** Lucide React
+- **Forms & Validation:** React Hook Form, Zod, @hookform/resolvers
+- **Database & Auth:** @supabase/supabase-js (^2.97.0)
+- **Analytics:** @vercel/analytics
 
 ## Environment Variables
-Expected environment variables (based on Supabase configuration in `lib/supabase.ts`):
-- `NEXT_PUBLIC_SUPABASE_URL`: The Supabase project URL.
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: The anonymous public API key for Supabase.
+Located in `.env.local`:
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase anon key.
+- `SUPER_ADMIN_USERNAME`: Admin login credentials.
+- `SUPER_ADMIN_PASSWORD`: Admin login credentials.
+- `DISCORD_WEBHOOK_URL`: General webhook for system alerts.
+- `DISCORD_PAYMENTS_WEBHOOK_URL`: Dedicated webhook for sending payment proofs and automated email templates.
+
+## Build Details
+- Next.js 16 build is successful.
+- Supabase RLS policies are active, but any warnings raised during setup or testing are intentionally left alone for now based on project decisions.

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2, UploadCloud, CheckCircle, ShieldCheck, RefreshCw, Mail, AlertTriangle, Building2, UserCircle2, ArrowRight } from 'lucide-react';
+import { Loader2, UploadCloud, CheckCircle, ShieldCheck, RefreshCw, Mail, AlertTriangle, Building2, UserCircle2, ArrowRight, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
 
 export default function CheckoutPage() {
@@ -11,10 +11,11 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [paymentType, setPaymentType] = useState<'registration' | 'commission' | 'none'>('none');
+  const [paymentType, setPaymentType] = useState<'registration' | 'commission' | 'locked' | 'none'>('none');
   const [dueAmount, setDueAmount] = useState(0);
   const [labId, setLabId] = useState('');
   const [labName, setLabName] = useState('');
+  const [labEmail, setLabEmail] = useState('');
   
   // Bank Details
   const [epDetails, setEpDetails] = useState({ number: '', title: '' });
@@ -26,20 +27,27 @@ export default function CheckoutPage() {
   const [senderName, setSenderName] = useState('');
   const [screenshot, setScreenshot] = useState<File | null>(null);
 
-  // Timer State (5 minutes = 300 seconds)
-  const [timeLeft, setTimeLeft] = useState(300);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     fetchStatus();
   }, []);
 
-  // Timer Effect
+  // Timer Effect with LocalStorage Persistence
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isPending && timeLeft > 0) {
       timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+        setTimeLeft((prev) => {
+          const newTime = prev - 1;
+          if (newTime <= 0) {
+            localStorage.removeItem('payment_timer');
+            return 0;
+          }
+          localStorage.setItem('payment_timer', newTime.toString());
+          return newTime;
+        });
       }, 1000);
     }
     
@@ -61,10 +69,14 @@ export default function CheckoutPage() {
         router.replace('/');
         return;
       }
+      
+      if (session.user.email) {
+        setLabEmail(session.user.email);
+      }
 
       const { data: lab } = await supabase
         .from('labs')
-        .select('id, name, payment_status, last_cleared_date, is_registered_paid, registration_status, created_at')
+        .select('id, name, payment_status, last_cleared_date, is_registered_paid, registration_status, created_at, is_active')
         .eq('owner_id', session.user.id)
         .single();
         
@@ -74,6 +86,14 @@ export default function CheckoutPage() {
         
         if (lab.registration_status === 'pending_approval' || lab.payment_status === 'submitted') {
           setIsPending(true);
+          // Restore timer or start fresh
+          const savedTime = localStorage.getItem('payment_timer');
+          if (savedTime && parseInt(savedTime) > 0) {
+            setTimeLeft(parseInt(savedTime));
+          } else if (!savedTime) {
+            setTimeLeft(300);
+            localStorage.setItem('payment_timer', '300');
+          }
           setIsLoading(false);
           return;
         }
@@ -112,6 +132,10 @@ export default function CheckoutPage() {
           if (commissionDue >= threshold) {
             setPaymentType('commission');
             setDueAmount(commissionDue);
+          } else if (lab.is_active === false) {
+            // For testing: force registration payment when manually locked
+            setPaymentType('registration');
+            setDueAmount(regFee);
           } else {
             router.replace('/dashboard');
             return;
@@ -134,15 +158,40 @@ export default function CheckoutPage() {
         .single();
 
       if (lab) {
-        if ((lab.payment_status === 'cleared' || lab.registration_status === 'cleared') && lab.is_active) {
-          if (showAlert) alert("Payment verified! Welcome back.");
-          router.replace('/dashboard');
+        const isStillPending = lab.registration_status === 'pending_approval' || lab.payment_status === 'submitted';
+        
+        if (!isStillPending && lab.is_active) {
+          if (showAlert) alert("Status updated! Refreshing your account...");
+          fetchStatus(); // Re-run full logic, which will route to dashboard if all clear
         } else {
           if (showAlert) alert("Still verifying. Please wait.");
         }
       }
     } catch (error) {
       console.error("Status check error:", error);
+    }
+  };
+
+  const cancelAndReupload = async () => {
+    setIsLoading(true);
+    try {
+      await supabase
+        .from('labs')
+        .update({
+          registration_status: 'none',
+          payment_status: 'accruing'
+        })
+        .eq('id', labId);
+        
+      localStorage.removeItem('payment_timer');
+      setIsPending(false);
+      setTimeLeft(0);
+      setScreenshot(null);
+      fetchStatus();
+    } catch (error) {
+      console.error("Error cancelling:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -164,8 +213,11 @@ export default function CheckoutPage() {
       const formData = new FormData();
       formData.append('file', screenshot);
       
-      const messageContent = `**New Payment Proof Uploaded**\n**Lab Name:** ${labName}\n**Sender Name:** ${senderName}\n**Amount Due:** Rs. ${dueAmount}\n**Payment Type:** ${paymentType}\n**Method:** ${selectedMethod}`;
+      const messageContent = `**New Payment Proof Uploaded**\n**Lab Name:** ${labName}\n**Email:** ${labEmail}\n**Sender Name:** ${senderName}\n**Amount Due:** Rs. ${dueAmount}\n**Payment Type:** ${paymentType}\n**Method:** ${selectedMethod}`;
       formData.append('content', messageContent);
+      formData.append('labName', labName);
+      formData.append('labEmail', labEmail);
+      formData.append('paymentType', paymentType);
 
       const res = await fetch('/api/payment', { method: 'POST', body: formData });
       if (!res.ok) throw new Error('Failed to submit receipt securely.');
@@ -218,19 +270,25 @@ export default function CheckoutPage() {
               <p className="text-gray-500 mb-6 text-sm leading-relaxed">
                 It seems our team is taking longer than usual to verify your payment. Please contact support.
               </p>
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-6 flex items-center justify-center gap-3">
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-center justify-center gap-3">
                 <Mail className="w-5 h-5 text-gray-400" />
                 <span className="font-bold text-gray-900">bharosalabo@gmail.com</span>
               </div>
             </>
           )}
 
-          <div className="flex flex-col gap-3">
-            <button onClick={() => checkApprovalStatus(true)} className="w-full bg-gray-900 hover:bg-black text-white font-semibold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+          <div className="flex flex-col gap-3 mt-6">
+            <button 
+              onClick={() => checkApprovalStatus(true)} 
+              className="w-full bg-gray-900 hover:bg-black text-white font-semibold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+            >
               <RefreshCw className="w-5 h-5" /> Check Status Now
             </button>
-            <button onClick={() => router.replace('/')} className="text-gray-400 font-medium hover:text-gray-900 transition-colors text-sm py-2">
-              Sign Out
+            <button 
+              onClick={cancelAndReupload}
+              className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3.5 px-6 rounded-xl transition-all border border-red-100"
+            >
+              Cancel & Re-upload
             </button>
           </div>
 
@@ -249,13 +307,20 @@ export default function CheckoutPage() {
           <ShieldCheck className="w-8 h-8 text-indigo-600" />
           <h1 className="text-2xl font-bold text-gray-900">Secure Checkout</h1>
         </div>
-        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm">
-          <Building2 className="w-4 h-4 text-gray-400" />
-          <span className="text-sm font-bold text-gray-700">{labName}</span>
-        </div>
       </div>
 
-      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      {paymentType === 'locked' ? (
+        <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-red-100 max-w-md w-full mt-8">
+          <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Suspended</h2>
+          <p className="text-gray-500 mb-6">Your lab account has been temporarily locked by the administration. Please contact support to resolve this issue.</p>
+          <div className="bg-gray-50 p-4 rounded-xl flex items-center justify-center gap-3">
+             <Mail className="w-5 h-5 text-gray-400" />
+             <span className="font-bold text-gray-900">bharosalabo@gmail.com</span>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left Column: Payment Methods Accordion */}
         <div className="lg:col-span-2 space-y-4">
@@ -280,7 +345,6 @@ export default function CheckoutPage() {
                     </div>
                     <span className="font-bold text-gray-900 text-lg">{method.name}</span>
                   </div>
-                  {/* Optional: Add small logos if you have local assets, otherwise omit */}
                 </div>
                 
                 {/* Expanded Details Form */}
@@ -311,7 +375,7 @@ export default function CheckoutPage() {
                             value={senderName}
                             onChange={(e) => setSenderName(e.target.value)}
                             placeholder="e.g. Ali Raza"
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium"
+                            className="w-full pl-10 pr-4 py-3 text-gray-900 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium"
                           />
                         </div>
                       </div>
@@ -390,6 +454,7 @@ export default function CheckoutPage() {
         </div>
 
       </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Menu } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
@@ -13,6 +13,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // 🛑 NAYA: Mobile Sidebar State
 
@@ -114,7 +115,7 @@ export default function DashboardLayout({
     };
 
     checkAuthAndBilling();
-  }, [router]);
+  }, [router, pathname]); // 🛑 NAYA: Re-run check on every route change
 
   if (!isAuthorized) {
     return (

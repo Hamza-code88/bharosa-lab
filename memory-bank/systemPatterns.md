@@ -1,38 +1,32 @@
 # System Patterns
 
-## Architecture
-The application is built utilizing the **Next.js App Router** architecture. It implements client-side and server-side logic split natively supported by Next.js 13+.
-- Real-time updates (e.g., new bookings) are achieved via **Supabase Realtime** (`postgres_changes` subscriptions).
-- The Super Admin portal leverages Next.js Server Actions for authentication and custom logic.
+## System Architecture
+The application is built on **Next.js 16** utilizing the App Router.
+- **Frontend:** React 19, Tailwind CSS (v4), Lucide React for icons.
+- **Backend:** Next.js Route Handlers (`app/api/*`) for server-side logic like Discord webhooks.
+- **Database / Auth:** Supabase (PostgreSQL) handling user sessions, relational data, and Row Level Security (RLS). Note: RLS warnings are currently bypassed as a known architectural decision.
 
-## Folder Structure
-```text
-/app
-  /api              # API routes
-  /components       # Reusable React components (Sidebar, NotificationListener, etc.)
-  /dashboard        # Lab Partner Portal routes (bookings, labprofile, tests)
-  /super-admin      # Super Admin Portal routes (ads, billing, orders, riders, etc.)
-  /payment          # Payment integration handling
-  /privacy-policy   # Static legal pages
-/lib
-  supabase.ts       # Supabase client instantiation
-/types
-  index.ts          # Zod validation schemas and TypeScript interfaces
-```
+## Database Schema (Inferred)
+1. **`labs`**
+   - `id`, `owner_id`, `name`, `city`, `logo_url`
+   - `payment_status` ('cleared', 'submitted', etc.)
+   - `registration_status` ('pending_approval', 'cleared')
+   - `is_active`, `is_registered_paid`
+   - `last_cleared_date`, `last_paid_amount`
+   - `payment_method`, `sender_name`, `payment_screenshot`
+2. **`bookings`**
+   - `id`, `lab_id`, `total_amount`, `status` ('Completed', etc.), `created_at`
+3. **`app_settings`**
+   - `id` (usually 1)
+   - `registration_fee`, `commission_percentage`, `commission_threshold`
+   - `easypaisa_number`, `easypaisa_title`
+   - `jazzcash_number`, `jazzcash_title`
+   - `sadapay_number`, `sadapay_title`
+4. **`payment_history`**
+   - `id`, `lab_id`, `amount_cleared`, `cleared_at`
 
-## Database Schema (Inferred from Codebase)
-The system relies on a PostgreSQL database hosted on Supabase. Key tables include:
-- **`profiles` / `app_settings` / `platform_settings`**: Platform and user configurations.
-- **`labs`**: Information about registered lab partners (Name, Address, Logo, Verification status).
-- **`lab_tests`**: Lab-specific catalog containing price, TAT, and active status.
-- **`master_tests`**: A global registry of standard medical tests.
-- **`bookings`**: Core transaction table holding patient details, total amounts, statuses, and assigned labs.
-- **`booking_items`**: Sub-items linked to a booking (individual tests).
-- **`notifications`**: System notifications.
-- **`app_promotions` / `banners`**: Promotional assets managed by super-admin.
-- **`payment_history` / `receipts` / `reports`**: Financial and medical record tracking.
-
-## Design Patterns
-- **Authentication:** OAuth via Supabase for Lab Partners (Google), and custom server-actions based auth for Super Admins.
-- **Form Handling:** Uses `react-hook-form` paired with `zod` for robust client-side validation.
-- **Styling:** TailwindCSS is used for utility-first responsive styling with custom color schemes for portals.
+## Key Folder Structure
+- `/app/payment/page.tsx`: Handles lab-side payment uploads, 5-minute timer, and Discord webhook integration.
+- `/app/super-admin/billing/page.tsx`: Admin interface for managing `app_settings`, reviewing labs, toggling active states, and viewing `payment_history`.
+- `/app/api/payment/route.ts`: Proxies payment screenshot and form data to `DISCORD_PAYMENTS_WEBHOOK_URL`.
+- `/lib/supabase.ts`: Supabase client initialization.

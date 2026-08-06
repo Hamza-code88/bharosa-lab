@@ -1,15 +1,32 @@
 # Active Context
 
 ## Current State
-The Bharosa Lab Partner and Super Admin Portals are actively implemented and functional. 
-- **Lab Partner Portal** (`/dashboard`): Contains a functional layout for managing test bookings, lab profiles, and available tests. It utilizes Google OAuth for secure lab partner login.
-- **Super Admin Portal** (`/super-admin`): A comprehensive administrative suite protected by custom server-action based authentication. It includes dashboards for ad management, billing, system orders, rider tracking, global settings, and support.
+The application is in a highly functional state following the successful Next.js 16 build. The billing and administration lifecycle is fully implemented and operational.
 
-## Recent Work
-- Integrated real-time notifications (`NotificationListener.tsx`) that leverage Supabase Postgres Changes to instantly alert lab partners via audio cues and toast notifications when new bookings are inserted.
-- Complete implementation of the Next.js App router with strong typing using Zod validation schemas for forms.
+## Recent Updates
+- **Payment UI (`payment/page.tsx`):**
+  - Designed a Hostinger-style secure checkout page.
+  - Integrated a 5-minute countdown timer that runs when payment is pending review.
+  - Implemented dynamic rendering of bank details (Easypaisa, JazzCash, SadaPay) fetched from global `app_settings`.
+- **Discord Webhook Integration (`api/payment/route.ts`):**
+  - File uploads and payment details are sent directly to `DISCORD_PAYMENTS_WEBHOOK_URL`.
+  - Added an automated email template generator directly inside the Discord message for admins to easily copy/paste to the client.
+- **Super Admin Billing UI (`super-admin/billing/page.tsx`):**
+  - Added a Billing Settings modal to globally configure `app_settings` (thresholds, bank details, fees).
+  - Built a comprehensive data table displaying lab statuses (Auto-Blocked, Active, Inactive).
+  - Added a Payment Ledger / History modal for tracking past cleared payments per lab.
+- **Supabase & Environment:**
+  - Decided to leave Supabase RLS policy warnings alone for the time being.
+  - Successfully migrated and built under Next.js 16 without errors.
+- **Bug Fixes & Workflow Enhancements (Post-Build):**
+  - **Payment Redirect Loop Fix:** Modified `payment/page.tsx` to handle manually locked accounts gracefully (forced registration testing flow) and decoupled Commission checks from Registration checks.
+  - **Client-Side Routing Fix:** Updated `dashboard/layout.tsx` to depend on `usePathname()` so manual locks/unlocks take effect instantly without a hard refresh.
+  - **Dedicated Registrations Page:** Created `super-admin/registrations/page.tsx` for handling 30-day trial status, manual locks, and registration fee approvals independently from commission billing.
+  - **AI Email Generation:** Integrated Groq API (`llama-3.3-70b-versatile`) in `/api/payment/route.ts` to dynamically generate highly professional, customized payment approval emails sent to Discord.
+  - **Payment UI Refinements:** Fixed text visibility on sender name input (`text-gray-900`), persisted the 5-minute timer using `localStorage`, and added a "Cancel & Re-upload" button for lab owners stuck on the timer screen.
+  - **Admin Billing Controls:** Added "Reject" and "Revert Last Approval" buttons to correctly manage fraudulent payments while ensuring `registration_status` and `payment_status` are fully cleared so labs don't get trapped in pending screens.
+  - **Automated Locking (Cron):** Implemented `/api/cron/auto-lock/route.ts` and `vercel.json` to run hourly and automatically set `is_active = false` for labs whose trial has expired or who exceed the commission limit. This ensures the Patient App automatically hides these labs.
 
-## Immediate Focus
-- Ensure stability across all real-time subscriptions.
-- Continue expanding test coverage or refining UI/UX based on actual laboratory usage feedback.
-- (If any new tasks are provided by the user, this section should be updated accordingly).
+## Next Steps
+- Continue addressing any minor UI/UX refinements.
+- Prepare for production deployment and finalize domain setup.

@@ -164,6 +164,71 @@ export default function BillingApprovalsPage() {
     }
   };
 
+  const rejectPayment = async (labId: string) => {
+    if (!confirm("Are you sure you want to REJECT this payment? This will force the lab to re-upload their receipt.")) return;
+
+    const { error } = await supabase
+      .from('labs')
+      .update({
+        payment_status: 'accruing',
+        registration_status: 'cleared', // Ensure no leftover pending status traps them
+        is_active: false // Keep them locked until they pay real fee
+      })
+      .eq('id', labId);
+
+    if (!error) {
+      alert("Payment Rejected. The lab is now locked and must re-submit payment.");
+      fetchLabsAndDues();
+    } else {
+      alert("Error rejecting payment!");
+    }
+  };
+
+  const revertLastPayment = async (labId: string) => {
+    if (!confirm("Are you sure you want to REVERT the most recent payment? This will restore the lab's previous debt and lock their account.")) return;
+
+    // 1. Fetch the TWO most recent history records
+    const { data: history } = await supabase
+      .from('payment_history')
+      .select('id, cleared_at')
+      .eq('lab_id', labId)
+      .order('cleared_at', { ascending: false })
+      .limit(2);
+
+    if (!history || history.length === 0) {
+      alert("No payment history found to revert.");
+      return;
+    }
+
+    const latestRecord = history[0];
+    const previousRecord = history.length > 1 ? history[1] : null;
+
+    // 2. Delete the latest record
+    await supabase.from('payment_history').delete().eq('id', latestRecord.id);
+
+    // 3. Update the lab's last_cleared_date to the previous record's date (or lab's creation date)
+    const { data: lab } = await supabase.from('labs').select('created_at').eq('id', labId).single();
+    const fallbackDate = previousRecord ? previousRecord.cleared_at : (lab?.created_at || new Date().toISOString());
+
+    const { error } = await supabase
+      .from('labs')
+      .update({
+        last_cleared_date: fallbackDate,
+        is_active: false,
+        payment_status: 'accruing', // Back to owing money
+        registration_status: 'cleared' // Ensure no leftover pending status traps them
+      })
+      .eq('id', labId);
+
+    if (!error) {
+      alert("Payment Reverted! Debt restored and account locked.");
+      setIsHistoryModalOpen(false);
+      fetchLabsAndDues();
+    } else {
+      alert("Error reverting payment.");
+    }
+  };
+
   // 🛑 NAYA: History fetch karne ka function
   const openHistoryModal = async (lab: any) => {
     setSelectedLabHistory({ id: lab.id, name: lab.name });
@@ -294,13 +359,8 @@ export default function BillingApprovalsPage() {
                       <td className="px-6 py-4">
                         {lab.payment_status === 'submitted' ? (
                           <div>
-                            <p className="text-xs font-bold text-gray-900">{lab.sender_name}</p>
-                            <p className="text-[10px] text-gray-500 uppercase">{lab.payment_method}</p>
-                            {lab.payment_screenshot && (
-                              <a href={lab.payment_screenshot} target="_blank" rel="noreferrer" className="flex items-center gap-1 mt-1.5 text-blue-600 hover:text-blue-800 text-xs font-bold">
-                                <FileImage className="w-3.5 h-3.5" /> View Receipt
-                              </a>
-                            )}
+                            <p className="text-xs font-bold text-gray-900">Check Discord for receipt</p>
+                            <p className="text-[10px] text-gray-500 uppercase">Payment details sent to webhook</p>
                           </div>
                         ) : (
                           <p className="text-xs text-gray-400 italic">No recent submission</p>
@@ -336,12 +396,20 @@ export default function BillingApprovalsPage() {
                           </button>
                           
                           {(lab.payment_status === 'submitted' || lab.isSystemBlocked) && (
-                            <button 
-                              onClick={() => approvePayment(lab.id, lab.dueAmount)} 
-                              className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-sm shadow-blue-500/30"
-                            >
-                              <ShieldCheck className="w-4 h-4" /> Approve
-                            </button>
+                            <>
+                              <button 
+                                onClick={() => rejectPayment(lab.id)} 
+                                className="inline-flex items-center gap-1.5 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                              >
+                                Reject
+                              </button>
+                              <button 
+                                onClick={() => approvePayment(lab.id, lab.dueAmount)} 
+                                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-sm shadow-blue-500/30"
+                              >
+                                <ShieldCheck className="w-4 h-4" /> Approve
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>
@@ -405,6 +473,25 @@ export default function BillingApprovalsPage() {
                   </div>
                 </div>
               </div>
+
+              <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                <h3 className="font-bold text-orange-800 mb-3 uppercase text-xs tracking-wider">SadaPay Details</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 mb-1">Mobile Number / IBAN</label>
+                    <input type="text" value={spNumber} onChange={(e) => setSpNumber(e.target.value)} className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500" required />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 mb-1">Account Title</label>
+                    <input type="text" value={spTitle} onChange={(e) => setSpTitle(e.target.value)} className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500" required />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t border-gray-100 pt-4 mt-2">
+                <label className="block text-xs font-bold text-gray-600 mb-1">Commission Blocking Threshold (Rs)</label>
+                <input type="number" value={commissionThreshold} onChange={(e) => setCommissionThreshold(e.target.value)} className="w-full bg-white border border-gray-200 text-gray-900 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 font-bold" required />
+              </div>
               
               <button type="submit" disabled={isSavingSettings} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all flex justify-center mt-6">
                 {isSavingSettings ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Settings'}
@@ -426,7 +513,17 @@ export default function BillingApprovalsPage() {
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <History className="w-6 h-6 text-blue-600" /> Payment Ledger
               </h2>
-              <p className="text-gray-500 mt-1">Showing cleared payment history for <strong className="text-gray-800">{selectedLabHistory.name}</strong></p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-gray-500">Showing cleared payment history for <strong className="text-gray-800">{selectedLabHistory.name}</strong></p>
+                {paymentHistory.length > 0 && (
+                  <button 
+                    onClick={() => revertLastPayment(selectedLabHistory.id)}
+                    className="text-xs bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-lg font-bold transition-all"
+                  >
+                    Revert Last Approval
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Filters & Summary */}

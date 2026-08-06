@@ -1,17 +1,25 @@
 # Progress
 
 ## Completed Features
-- [x] Initial Next.js App Router setup with TailwindCSS v4.
-- [x] Supabase integration (Auth, DB, Realtime).
-- [x] Zod schemas and strict TypeScript definitions (`types/index.ts`).
-- [x] **Lab Partner Authentication:** Google OAuth login page tailored for partners.
-- [x] **Lab Partner Dashboard:** Real-time booking alerts, lab profile management, and test catalog editing.
-- [x] **Super Admin Authentication:** Custom login mechanism for system core access.
-- [x] **Super Admin Dashboard:** Directory structure and routing for Ads, Billing, Orders, Riders, Settings, and Support.
-- [x] Database schema established across 14+ core tables (`labs`, `bookings`, `master_tests`, etc.).
+- [x] Next.js 16 environment setup and successful build.
+- [x] Supabase integration (Auth, Database, Storage).
+- [x] Lab Dashboard basics (bookings, tests, active status).
+- [x] Global Application Settings (`app_settings` table for thresholds and bank details).
+- [x] Payment Gateway UI (Hostinger-style checkout, 5-minute timer).
+- [x] Super Admin Billing Dashboard (manual approvals, toggles, settings modal).
+- [x] Payment History / Ledger table integration.
+- [x] Discord Webhooks (General & Payments with automated email templates).
+- [x] RLS Policies applied (warnings intentionally ignored).
+- [x] Fix Payment Redirect Loops & Client-side auth checks (`usePathname`).
+- [x] Dedicated Super Admin Registration Approvals Page (`app/super-admin/registrations`).
+- [x] Groq API AI-generated Email Templates for payment approvals.
+- [x] Payment timer `localStorage` persistence, UI bug fixes, and "Cancel & Re-upload" capability.
+- [x] Robust Billing Controls: Reject & Revert Last Approval buttons with full status resets.
+- [x] Automated Cron Job (`/api/cron/auto-lock`) for locking expired/indebted labs hourly.
 
-## Remaining / Known Roadmap Items
-- [ ] Incorporate comprehensive unit and integration testing.
-- [ ] Potential scale-up of Rider tracking visualization within the Super Admin portal.
-- [ ] Advanced financial reporting and ledger exports in the Billing section.
-- [ ] User feedback integrations.
+## Remaining Known Roadmap Items
+- [ ] User role expansion (Staff vs Owner permissions within a lab).
+- [ ] Enhanced Reporting & Analytics for Lab Owners (Charts/Graphs).
+- [ ] Automated SMS gateway integration (Optional/Future).
+- [ ] Patient Portal for viewing test results.
+- [ ] Final production deployment verifications (Vercel/Custom VPS).
