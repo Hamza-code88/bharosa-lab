@@ -6,8 +6,8 @@ import NotificationListener from "./components/NotificationListener";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bharosa Lab Partner",
-  description: "Pathology Lab Management Portal",
+  title: "Bharosa Lab | Where Trust Makes Life Easier",
+  description: "Discover laboratory tests, arrange home sample collection, access digital reports, and connect with qualified doctors through Bharosa Lab's digital healthcare platform.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

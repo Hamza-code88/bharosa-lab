@@ -26,7 +26,12 @@ The application is in a highly functional state following the successful Next.js
   - **Payment UI Refinements:** Fixed text visibility on sender name input (`text-gray-900`), persisted the 5-minute timer using `localStorage`, and added a "Cancel & Re-upload" button for lab owners stuck on the timer screen.
   - **Admin Billing Controls:** Added "Reject" and "Revert Last Approval" buttons to correctly manage fraudulent payments while ensuring `registration_status` and `payment_status` are fully cleared so labs don't get trapped in pending screens.
   - **Automated Locking (Cron):** Implemented `/api/cron/auto-lock/route.ts` and `vercel.json` to run hourly and automatically set `is_active = false` for labs whose trial has expired or who exceed the commission limit. This ensures the Patient App automatically hides these labs.
+- **Official Bharosa Lab Multi-Page Website & Partner Login:**
+  - Designed and deployed the official public-facing website on the root `/` route.
+  - Built dedicated pages: `/services`, `/doctors`, `/partner-labs`, `/partner-with-us`, `/about`, `/contact`, `/faq`, `/terms`, `/privacy-policy`.
+  - Moved the Google OAuth Partner Login screen to `/login` with clean links to and from the public website.
+  - Maintained 100% English professional tone with SDG alignments (SDG 3, 9, 10, 17) and responsible medical framing.
 
 ## Next Steps
-- Continue addressing any minor UI/UX refinements.
+- Continue addressing any user feedback on the newly created website pages and layout.
 - Prepare for production deployment and finalize domain setup.

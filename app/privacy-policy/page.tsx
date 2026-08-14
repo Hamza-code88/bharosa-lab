@@ -1,74 +1,95 @@
 import React from 'react';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { ShieldCheck, Lock } from 'lucide-react';
 
-export default function PrivacyPolicy() {
+export const metadata = {
+  title: "Privacy Policy | Bharosa Lab",
+  description: "Learn how Bharosa Lab protects and handles your personal and medical information.",
+};
+
+export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Privacy Policy</h1>
-        <p className="text-sm text-gray-500 mb-8">Last Updated: July 2026</p>
+    <div className="min-h-screen flex flex-col bg-white font-sans text-slate-900">
+      <Navbar />
 
-        <div className="space-y-8 text-gray-700">
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Introduction</h2>
-            <p className="leading-relaxed">
-              Welcome to <strong>Bharosa Lab</strong>. We value your privacy and are committed to protecting your personal data. 
-              This Privacy Policy explains how we collect, use, and safeguard your information when you use our mobile application and services for home blood sample collection and lab testing.
-            </p>
-          </section>
+      <main className="flex-1 py-16 sm:py-20 bg-slate-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-sm space-y-8">
+            
+            <div className="border-b border-slate-100 pb-6 space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Data Protection & Privacy
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Privacy Policy
+              </h1>
+              <p className="text-xs text-slate-400">
+                Official Policy • Bharosa Lab Digital Healthcare Platform
+              </p>
+            </div>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Information We Collect</h2>
-            <ul className="list-disc pl-5 space-y-2 leading-relaxed">
-              <li><strong>Personal Information:</strong> Name, phone number, age, and gender to process your lab tests and identify patients accurately.</li>
-              <li><strong>Location Data:</strong> Your exact GPS location (latitude and longitude) and home address are collected solely for our riders to navigate and reach your destination for sample collection.</li>
-              <li><strong>Medical Data:</strong> Details of the tests you book and the resulting medical reports, handled with strict confidentiality.</li>
-            </ul>
-          </section>
+            <div className="space-y-6 text-sm text-slate-600 leading-relaxed">
+              
+              <section className="space-y-2">
+                <h2 className="text-lg font-bold text-slate-900">1. Introduction</h2>
+                <p>
+                  Welcome to <strong>Bharosa Lab</strong> (“Where Trust Makes Life Easier”). We value your trust and are committed to safeguarding your personal and medical diagnostic data. This Privacy Policy outlines our standards for collecting, managing, and securing information across our mobile applications, web portals, and diagnostic booking channels.
+                </p>
+              </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">3. How We Use Your Information</h2>
-            <p className="leading-relaxed mb-3">Your information is used strictly to provide and improve our healthcare services:</p>
-            <ul className="list-disc pl-5 space-y-2 leading-relaxed">
-              <li>To dispatch a rider to your specific location for sample collection.</li>
-              <li>To communicate with you regarding your bookings, rider status, and test reports.</li>
-              <li>To process payments and maintain your booking history.</li>
-            </ul>
-          </section>
+              <section className="space-y-2">
+                <h2 className="text-lg font-bold text-slate-900">2. Information We Collect</h2>
+                <ul className="list-disc pl-5 space-y-1.5">
+                  <li><strong>Personal Identification:</strong> Name, contact phone/WhatsApp, age, and gender to identify patients and coordinate sample collection.</li>
+                  <li><strong>Address & Location Data:</strong> Explicit address and approximate GPS coordinates provided solely to facilitate phlebotomist visits for home sample collection.</li>
+                  <li><strong>Diagnostic Test Data:</strong> Booked test names, requested dates, and digital laboratory test reports uploaded by authorized partner laboratories.</li>
+                  <li><strong>Professional Practitioner Data:</strong> Qualifications, specialization, and contact details for registered participating doctors and lab partners.</li>
+                </ul>
+              </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Data Sharing and Security</h2>
-            <p className="leading-relaxed">
-              We do not sell or rent your personal information to third parties. Your data is only shared with our verified lab partners and riders strictly for fulfilling your booked service. We use industry-standard security measures (including secure database infrastructure) to protect your personal and medical information from unauthorized access.
-            </p>
-          </section>
+              <section className="space-y-2">
+                <h2 className="text-lg font-bold text-slate-900">3. Purpose and Use of Data</h2>
+                <p>Collected data is processed strictly for the following functional purposes:</p>
+                <ul className="list-disc pl-5 space-y-1.5">
+                  <li>Routing test bookings and sample collection requests to selected partner laboratories and trained collection personnel.</li>
+                  <li>Delivering verified digital PDF diagnostic reports to the patient&apos;s authenticated account.</li>
+                  <li>Enabling secure tele-consultation between patients and participating healthcare professionals.</li>
+                  <li>Communicating operational status updates via SMS, push notifications, or WhatsApp.</li>
+                </ul>
+              </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Account Deletion and Data Retention</h2>
-            <p className="leading-relaxed mb-3">
-              We respect your right to manage your data. If you wish to delete your account and all associated personal data from our systems, you can request an account deletion at any time.
-            </p>
-            <ul className="list-disc pl-5 space-y-2 leading-relaxed mb-3">
-              <li><strong>How to request deletion:</strong> Send an email to <strong>bharosalabo@gmail.com</strong> with the subject "Account Deletion Request" from your registered email address, or contact our support number.</li>
-              <li><strong>What data is deleted:</strong> Your personal profile, location data, saved addresses, and all identifiable medical reports will be permanently deleted from our active database within 30 days of the request.</li>
-              <li><strong>What data is kept:</strong> Anonymized transaction records and payment history may be retained for up to 5 years strictly for accounting, legal, and tax compliance purposes.</li>
-            </ul>
-          </section>
+              <section className="space-y-2">
+                <h2 className="text-lg font-bold text-slate-900">4. Confidentiality & Security</h2>
+                <p>
+                  Bharosa Lab does not sell, lease, or monetize personal health information to third-party advertisers. All diagnostic records are accessible strictly to authorized partner laboratories fulfilling the test, consulting doctors assigned by the patient, and the patient themselves. We implement encrypted data transit and modern access controls to protect against unauthorized data disclosure.
+                </p>
+              </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Your Rights</h2>
-            <p className="leading-relaxed">
-              You have the right to request access to the data we hold about you, and to request correction or deletion of your personal data. If you have any concerns regarding your privacy, please contact our support team.
-            </p>
-          </section>
+              <section className="space-y-2">
+                <h2 className="text-lg font-bold text-slate-900">5. Account Deletion & Rights</h2>
+                <p>
+                  Users retain the right to request deletion of their account profile and personal data at any time. Requests can be submitted via the contact channels on our website or by contacting support at <strong>03141811158</strong>. Identifiable medical reports are purged from active indexing within standard retention limits, barring mandatory statutory auditing records.
+                </p>
+              </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Contact Us</h2>
-            <p className="leading-relaxed">
-              If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at <strong>bharosalabo@gmail.com</strong>.
-            </p>
-          </section>
+              <section className="space-y-2">
+                <h2 className="text-lg font-bold text-slate-900">6. Contact Information</h2>
+                <p>
+                  For questions or privacy concerns regarding this policy, please contact our administrative team at <strong>03141811158</strong> or through our official contact page.
+                </p>
+              </section>
+
+            </div>
+
+          </div>
+
         </div>
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }
