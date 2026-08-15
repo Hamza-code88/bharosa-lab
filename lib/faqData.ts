@@ -59,16 +59,23 @@ export const allFaqs: FAQItem[] = [
   {
     category: "Doctors & Partners",
     question: "How can a doctor join Bharosa Lab?",
-    answer: "Qualified healthcare professionals can apply through the Doctors page or Contact page by providing their professional qualifications, specialization, and consultation availability for onboarding."
+    answer: "Qualified healthcare professionals can sign in directly to the Doctor Portal (https://bharosa-doctor.vercel.app/auth) to authenticate their account, verify PMDC credentials, and configure consultation slots."
   },
   {
     category: "Doctors & Partners",
     question: "How can organizations partner with Bharosa Lab?",
-    answer: "Healthcare organizations, clinics, and institutional initiatives can reach out via the 'Partner With Us' page to explore digital health collaboration and community outreach partnerships."
+    answer: "Healthcare organizations, clinics, and institutional initiatives can reach out via the 'Partner With Us' page or contact desk to explore digital health collaboration and community outreach partnerships."
   },
   {
     category: "Support & Contact",
     question: "How can I contact Bharosa Lab?",
-    answer: "You can reach Bharosa Lab support via phone/WhatsApp at 03141811158, through our social media channels (@bharosa_lab), or via the contact form on our website."
+    answer: "You can reach Bharosa Lab support via Helpline / WhatsApp at 03141811158, email at bharosalabo@gmail.com, or through our social media channels (@bharosa_lab)."
   }
+];
+
+export const faqCategories = [
+  "General & Patients",
+  "Partner Laboratories",
+  "Doctors & Partners",
+  "Support & Contact"
 ];
