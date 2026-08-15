@@ -21,7 +21,8 @@ import {
   Activity,
   HeartPulse,
   Play,
-  Pause
+  Pause,
+  ArrowUpRight
 } from 'lucide-react';
 
 interface SlideData {
@@ -44,18 +45,18 @@ interface SlideData {
 const slides: SlideData[] = [
   {
     id: 1,
-    badge: "Connected Healthcare Platform",
-    badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
-    title: "Healthcare Services, Connected in One Place.",
-    titleGradient: "from-blue-600 via-teal-600 to-indigo-600",
+    badge: "Official Mobile Platform",
+    badgeColor: "bg-teal-50 text-teal-800 border-teal-200",
+    title: "Healthcare Services, Connected in One App.",
+    titleGradient: "from-[#1E3A5F] via-blue-600 to-teal-600",
     description: "Discover laboratory tests, arrange home sample collection, access digital reports, and connect with qualified doctors through one digital healthcare platform.",
-    primaryCtaText: "Download the App",
+    primaryCtaText: "Download Mobile App",
     primaryCtaLink: "https://play.google.com/store",
     isPrimaryExternal: true,
-    secondaryCtaText: "Partner With Us",
-    secondaryCtaLink: "/partner-with-us",
+    secondaryCtaText: "Explore Services",
+    secondaryCtaLink: "/services",
     imageUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=75",
-    imageAlt: "Digital Healthcare Telemedicine & Diagnostics",
+    imageAlt: "Digital Healthcare on Mobile",
     highlights: ["Verified Diagnostic Labs", "Secure Digital Reports", "Live Tele-Doctors"]
   },
   {
@@ -63,7 +64,7 @@ const slides: SlideData[] = [
     badge: "Diagnostic Testing & Phlebotomy",
     badgeColor: "bg-teal-50 text-teal-800 border-teal-200",
     title: "Book Diagnostic Tests with Home Sample Collection.",
-    titleGradient: "from-teal-600 via-emerald-600 to-blue-600",
+    titleGradient: "from-teal-600 via-emerald-600 to-[#1E3A5F]",
     description: "Avoid unnecessary clinic travel. Request certified sample collectors to visit your home and receive fast, verified digital PDF reports directly on your mobile device.",
     primaryCtaText: "Book a Test in App",
     primaryCtaLink: "https://play.google.com/store",
@@ -77,15 +78,15 @@ const slides: SlideData[] = [
   {
     id: 3,
     badge: "Online Medical Telemedicine",
-    badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200",
     title: "Connect with Qualified Doctors in Real Time.",
-    titleGradient: "from-indigo-600 via-blue-600 to-teal-600",
+    titleGradient: "from-teal-600 via-blue-700 to-[#1E3A5F]",
     description: "Get professional medical advice, review diagnostic laboratory results, and consult experienced general practitioners and specialists remotely.",
     primaryCtaText: "Consult a Doctor",
     primaryCtaLink: "/doctors",
     isPrimaryExternal: false,
     secondaryCtaText: "Join as a Doctor",
-    secondaryCtaLink: "/doctors#join-form",
+    secondaryCtaLink: "https://bharosa-doctor.vercel.app/auth",
     imageUrl: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=800&auto=format&fit=crop&q=75",
     imageAlt: "Qualified Doctor Consultation",
     highlights: ["Licensed Practitioners", "Lab Result Interpretation", "Flexible Tele-Slots"]
@@ -93,9 +94,9 @@ const slides: SlideData[] = [
   {
     id: 4,
     badge: "Enterprise SaaS for Labs",
-    badgeColor: "bg-amber-50 text-amber-800 border-amber-200",
+    badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200",
     title: "Grow Your Diagnostic Laboratory Online.",
-    titleGradient: "from-blue-700 via-teal-600 to-slate-900",
+    titleGradient: "from-[#1E3A5F] via-teal-600 to-emerald-700",
     description: "Empower your pathology lab with a dedicated portal to manage test offerings, process incoming patient orders, submit digital reports, and monitor earnings.",
     primaryCtaText: "Become a Partner Lab",
     primaryCtaLink: "/login",
@@ -223,7 +224,7 @@ export default function HeroCarousel() {
           <div className="lg:col-span-7 space-y-5 text-center lg:text-left transition-all duration-300">
             
             <div className={`inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border shadow-xs ${slide.badgeColor}`}>
-              <HeartPulse className="w-3.5 h-3.5" />
+              <HeartPulse className="w-3.5 h-3.5 text-teal-600" />
               <span>{slide.badge}</span>
             </div>
 
@@ -244,28 +245,45 @@ export default function HeroCarousel() {
                   href={slide.primaryCtaLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 rounded-2xl transition-all shadow-md shadow-blue-500/20 active:scale-98 cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-[#1E3A5F] to-teal-600 hover:from-slate-900 hover:to-teal-700 rounded-2xl transition-all shadow-md shadow-slate-900/15 active:scale-98 cursor-pointer"
                 >
-                  <Smartphone className="w-4 h-4" />
+                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                    <path d="M4.06 2.15C3.76 2.47 3.59 2.97 3.59 3.63V20.37C3.59 21.03 3.76 21.53 4.06 21.85L4.13 21.92L13.51 12.54V12.46V12.38L4.13 3L4.06 2.15Z" fill="#00D3FF"/>
+                    <path d="M16.63 15.66L13.51 12.54V12.38L16.63 9.26L16.73 9.32L20.43 11.42C21.49 12.02 21.49 13.01 20.43 13.61L16.73 15.71L16.63 15.66Z" fill="#FFD300"/>
+                    <path d="M16.73 15.71L13.51 12.46L4.06 21.92C4.41 22.29 5.01 22.34 5.69 21.95L16.73 15.71Z" fill="#FF3A44"/>
+                    <path d="M16.73 9.32L5.69 3.08C5.01 2.69 4.41 2.74 4.06 3.11L13.51 12.57L16.73 9.32Z" fill="#00E676"/>
+                  </svg>
                   <span>{slide.primaryCtaText}</span>
                 </a>
               ) : (
                 <Link
                   href={slide.primaryCtaLink}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 rounded-2xl transition-all shadow-md shadow-blue-500/20"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-[#1E3A5F] to-teal-600 hover:from-slate-900 hover:to-teal-700 rounded-2xl transition-all shadow-md shadow-slate-900/15"
                 >
                   <span>{slide.primaryCtaText}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               )}
 
-              <Link
-                href={slide.secondaryCtaLink}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm sm:text-base font-bold text-[#1E3A5F] hover:text-teal-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-300 rounded-2xl transition-all shadow-xs"
-              >
-                <span>{slide.secondaryCtaText}</span>
-                <ArrowRight className="w-4 h-4 text-teal-600" />
-              </Link>
+              {slide.secondaryCtaLink.startsWith('http') ? (
+                <a
+                  href={slide.secondaryCtaLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm sm:text-base font-bold text-[#1E3A5F] hover:text-teal-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-300 rounded-2xl transition-all shadow-xs cursor-pointer"
+                >
+                  <span>{slide.secondaryCtaText}</span>
+                  <ArrowUpRight className="w-4 h-4 text-teal-600" />
+                </a>
+              ) : (
+                <Link
+                  href={slide.secondaryCtaLink}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm sm:text-base font-bold text-[#1E3A5F] hover:text-teal-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-300 rounded-2xl transition-all shadow-xs"
+                >
+                  <span>{slide.secondaryCtaText}</span>
+                  <ArrowRight className="w-4 h-4 text-teal-600" />
+                </Link>
+              )}
             </div>
 
             {/* Micro Feature Indicators */}
@@ -280,7 +298,7 @@ export default function HeroCarousel() {
 
           </div>
 
-          {/* Right Visual Column: Fast CDN Image with Fallback and Instant Loading */}
+          {/* Right Visual Column */}
           <div className="lg:col-span-5 relative flex justify-center">
             
             <div className="relative w-full max-w-md lg:max-w-none h-[300px] sm:h-[360px] rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-900 group">

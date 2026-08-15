@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current State
-The application is in a highly functional state following the successful Next.js 16 build. The billing and administration lifecycle is fully implemented and operational.
+The application is in a highly functional state following the successful Next.js 16 build. The public marketing site, billing, lab partner portal, and super administration workflows are fully operational and synchronized.
 
 ## Recent Updates
 - **Payment UI (`payment/page.tsx`):**
@@ -19,7 +19,7 @@ The application is in a highly functional state following the successful Next.js
   - Decided to leave Supabase RLS policy warnings alone for the time being.
   - Successfully migrated and built under Next.js 16 without errors.
 - **Bug Fixes & Workflow Enhancements (Post-Build):**
-  - **Payment Redirect Loop Fix:** Modified `payment/page.tsx` to handle manually locked accounts gracefully (forced registration testing flow) and decoupled Commission checks from Registration checks.
+  - **Payment Redirect Loop Fix:** Modified `payment/page.tsx` to handle manually locked accounts gracefully and decoupled Commission checks from Registration checks.
   - **Client-Side Routing Fix:** Updated `dashboard/layout.tsx` to depend on `usePathname()` so manual locks/unlocks take effect instantly without a hard refresh.
   - **Dedicated Registrations Page:** Created `super-admin/registrations/page.tsx` for handling 30-day trial status, manual locks, and registration fee approvals independently from commission billing.
   - **AI Email Generation:** Integrated Groq API (`llama-3.3-70b-versatile`) in `/api/payment/route.ts` to dynamically generate highly professional, customized payment approval emails sent to Discord.
@@ -31,6 +31,12 @@ The application is in a highly functional state following the successful Next.js
   - Built dedicated pages: `/services`, `/doctors`, `/partner-labs`, `/partner-with-us`, `/about`, `/contact`, `/faq`, `/terms`, `/privacy-policy`.
   - Moved the Google OAuth Partner Login screen to `/login` with clean links to and from the public website.
   - Maintained 100% English professional tone with SDG alignments (SDG 3, 9, 10, 17) and responsible medical framing.
+- **Navbar & Doctor Portal Updates:**
+  - Increased Navbar brand logo sizing and proportions with responsive typography across all screen sizes.
+  - Replaced plain text in the top micro-bar with interactive, clickable Instagram, Facebook, and WhatsApp icons and direct phone links.
+  - Added official multi-color Google Play Store vector icon to the primary "Download App" CTA buttons.
+  - Completely removed the doctor registration inquiry form from `/doctors` and replaced all doctor CTAs across the entire platform (Navbar, Hero Slides, Homepage, Services, Footer) with direct redirects to the dedicated practitioner portal: `https://bharosa-doctor.vercel.app/auth`.
+  - Verified Next.js 16 build passing with 30/30 static and dynamic routes compiled successfully.
 
 ## Next Steps
 - Continue addressing any user feedback on the newly created website pages and layout.

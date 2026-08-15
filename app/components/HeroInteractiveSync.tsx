@@ -18,7 +18,8 @@ import {
   Users, 
   Building2, 
   Award,
-  Microscope
+  Microscope,
+  ArrowUpRight
 } from 'lucide-react';
 
 interface HeroSlide {
@@ -47,9 +48,9 @@ const heroSlides: HeroSlide[] = [
   {
     id: 0,
     badge: "Official Mobile Application",
-    badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
+    badgeColor: "bg-teal-50 text-teal-800 border-teal-200",
     title: "Healthcare Services, Connected in One App.",
-    titleGradient: "from-blue-600 via-teal-600 to-indigo-600",
+    titleGradient: "from-[#1E3A5F] via-blue-600 to-teal-600",
     description: "Discover laboratory tests, arrange home sample collection, access digital reports, and connect with qualified doctors through the official Bharosa Lab mobile app.",
     primaryCtaText: "Download the App",
     primaryCtaLink: "https://play.google.com/store",
@@ -60,7 +61,7 @@ const heroSlides: HeroSlide[] = [
     mockupTag: "Bharosa Lab App",
     mockupTitle: "Digital Healthcare Hub",
     mockupSubtitle: "All diagnostic & doctor services in one app",
-    mockupGradient: "from-blue-600 via-teal-600 to-[#1E3A5F]",
+    mockupGradient: "from-[#1E3A5F] via-blue-700 to-teal-600",
     mockupBtn: "Get Mobile App",
     mockupIcon: Smartphone
   },
@@ -69,7 +70,7 @@ const heroSlides: HeroSlide[] = [
     badge: "Diagnostic Laboratories & Phlebotomy",
     badgeColor: "bg-teal-50 text-teal-800 border-teal-200",
     title: "Accredited Lab Tests & Home Blood Collection.",
-    titleGradient: "from-teal-600 via-emerald-600 to-blue-600",
+    titleGradient: "from-teal-600 via-emerald-600 to-[#1E3A5F]",
     description: "Avoid unnecessary clinic travel. Request certified sample collectors to visit your home and receive fast, verified digital PDF reports directly on your mobile device.",
     primaryCtaText: "Book a Test in App",
     primaryCtaLink: "https://play.google.com/store",
@@ -87,20 +88,20 @@ const heroSlides: HeroSlide[] = [
   {
     id: 2,
     badge: "Qualified Medical Doctors",
-    badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200",
     title: "Connect with Qualified Doctors in Real Time.",
-    titleGradient: "from-indigo-600 via-blue-600 to-teal-600",
+    titleGradient: "from-teal-600 via-blue-700 to-[#1E3A5F]",
     description: "Get professional medical advice, review diagnostic laboratory results, and consult experienced general practitioners and specialists remotely from anywhere.",
     primaryCtaText: "Consult a Doctor",
     primaryCtaLink: "/doctors",
     isPrimaryExternal: false,
     secondaryCtaText: "Join as a Doctor",
-    secondaryCtaLink: "/doctors#join-form",
+    secondaryCtaLink: "https://bharosa-doctor.vercel.app/auth",
     highlights: ["Licensed Medical Doctors", "Lab Report Review", "Live Tele-Consultations"],
     mockupTag: "Live Telemedicine",
     mockupTitle: "Consult Qualified Doctors",
     mockupSubtitle: "Online medical reviews & clinical guidance",
-    mockupGradient: "from-indigo-600 via-blue-600 to-[#1E3A5F]",
+    mockupGradient: "from-teal-600 via-blue-600 to-[#1E3A5F]",
     mockupBtn: "Consult Doctor",
     mockupIcon: Stethoscope
   },
@@ -109,7 +110,7 @@ const heroSlides: HeroSlide[] = [
     badge: "Healthcare Impact & Global SDGs",
     badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200",
     title: "Advancing Accessible Health & Global SDGs.",
-    titleGradient: "from-emerald-600 via-teal-600 to-blue-700",
+    titleGradient: "from-emerald-600 via-teal-600 to-[#1E3A5F]",
     description: "Leveraging digital health infrastructure and institutional partnerships aligned with SDG 3, 9, 10, and 17 to reduce healthcare inequalities and improve community access.",
     primaryCtaText: "Partner With Us",
     primaryCtaLink: "/partner-with-us",
@@ -203,12 +204,6 @@ export default function HeroInteractiveSync() {
           <div className={`lg:col-span-7 space-y-6 text-center lg:text-left transition-all duration-300 transform ${
             isFading ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
           }`}>
-            
-            {/* Dynamic Badge */}
-            <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold border shadow-xs transition-colors ${slide.badgeColor}`}>
-              <HeartPulse className="w-3.5 h-3.5" />
-              <span>{slide.badge}</span>
-            </div>
 
             {/* Dynamic Animated Heading */}
             <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-black text-[#1E3A5F] tracking-tight leading-[1.12]">
@@ -229,28 +224,45 @@ export default function HeroInteractiveSync() {
                   href={slide.primaryCtaLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 rounded-2xl transition-all shadow-lg shadow-blue-500/25 active:scale-98 cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-[#1E3A5F] to-teal-600 hover:from-slate-900 hover:to-teal-700 rounded-2xl transition-all shadow-lg shadow-slate-900/15 active:scale-98 cursor-pointer"
                 >
-                  <Smartphone className="w-5 h-5" />
+                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                    <path d="M4.06 2.15C3.76 2.47 3.59 2.97 3.59 3.63V20.37C3.59 21.03 3.76 21.53 4.06 21.85L4.13 21.92L13.51 12.54V12.46V12.38L4.13 3L4.06 2.15Z" fill="#00D3FF"/>
+                    <path d="M16.63 15.66L13.51 12.54V12.38L16.63 9.26L16.73 9.32L20.43 11.42C21.49 12.02 21.49 13.01 20.43 13.61L16.73 15.71L16.63 15.66Z" fill="#FFD300"/>
+                    <path d="M16.73 15.71L13.51 12.46L4.06 21.92C4.41 22.29 5.01 22.34 5.69 21.95L16.73 15.71Z" fill="#FF3A44"/>
+                    <path d="M16.73 9.32L5.69 3.08C5.01 2.69 4.41 2.74 4.06 3.11L13.51 12.57L16.73 9.32Z" fill="#00E676"/>
+                  </svg>
                   <span>{slide.primaryCtaText}</span>
                 </a>
               ) : (
                 <Link
                   href={slide.primaryCtaLink}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 rounded-2xl transition-all shadow-lg shadow-blue-500/25 active:scale-98"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 text-sm sm:text-base font-bold text-white bg-gradient-to-r from-[#1E3A5F] to-teal-600 hover:from-slate-900 hover:to-teal-700 rounded-2xl transition-all shadow-lg shadow-slate-900/15 active:scale-98"
                 >
                   <span>{slide.primaryCtaText}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               )}
 
-              <Link
-                href={slide.secondaryCtaLink}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-sm sm:text-base font-bold text-[#1E3A5F] hover:text-teal-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-300 rounded-2xl transition-all shadow-xs"
-              >
-                <span>{slide.secondaryCtaText}</span>
-                <ArrowRight className="w-4 h-4 text-teal-600" />
-              </Link>
+              {slide.secondaryCtaLink.startsWith('http') ? (
+                <a
+                  href={slide.secondaryCtaLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-sm sm:text-base font-bold text-[#1E3A5F] hover:text-teal-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-300 rounded-2xl transition-all shadow-xs cursor-pointer"
+                >
+                  <span>{slide.secondaryCtaText}</span>
+                  <ArrowUpRight className="w-4 h-4 text-teal-600" />
+                </a>
+              ) : (
+                <Link
+                  href={slide.secondaryCtaLink}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-sm sm:text-base font-bold text-[#1E3A5F] hover:text-teal-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-300 rounded-2xl transition-all shadow-xs"
+                >
+                  <span>{slide.secondaryCtaText}</span>
+                  <ArrowRight className="w-4 h-4 text-teal-600" />
+                </Link>
+              )}
             </div>
 
             {/* Dynamic Highlights */}
@@ -272,7 +284,7 @@ export default function HeroInteractiveSync() {
             <div className="relative w-full max-w-[340px] sm:max-w-[360px]">
               
               {/* Ambient Glow Halo */}
-              <div className="absolute -inset-3 bg-gradient-to-tr from-blue-600/30 via-teal-500/20 to-indigo-600/30 rounded-[48px] blur-xl -z-10" />
+              <div className="absolute -inset-3 bg-gradient-to-tr from-blue-600/20 via-teal-500/20 to-slate-900/30 rounded-[48px] blur-xl -z-10" />
 
               {/* Smartphone Frame */}
               <div className="bg-slate-950 p-3 rounded-[46px] shadow-2xl border-4 border-slate-800 ring-1 ring-slate-700/50">
@@ -299,10 +311,10 @@ export default function HeroInteractiveSync() {
                     <div>
                       <p className="text-xs font-bold text-slate-400 leading-none">Welcome to</p>
                       <h3 className="text-xl font-black tracking-tight mt-0.5">
-                        <span className="text-blue-600">Bharosa</span> <span className="text-[#1E3A5F]">Lab</span>
+                        <span className="text-[#1E3A5F]">Bharosa</span> <span className="text-teal-600">Lab</span>
                       </h3>
                     </div>
-                    <div className="w-9 h-9 rounded-full bg-[#1E3A8A] text-white font-black text-sm flex items-center justify-center shadow-xs">
+                    <div className="w-9 h-9 rounded-full bg-[#1E3A5F] text-white font-black text-sm flex items-center justify-center shadow-xs">
                       U
                     </div>
                   </div>
@@ -325,7 +337,7 @@ export default function HeroInteractiveSync() {
                       <FlaskConical size={11} /> Lab Tests
                     </span>
                     <span className="text-slate-300">•</span>
-                    <span className={`flex items-center gap-1 font-bold ${activeSlide === 2 ? 'text-indigo-600' : 'text-slate-600'}`}>
+                    <span className={`flex items-center gap-1 font-bold ${activeSlide === 2 ? 'text-teal-600' : 'text-slate-600'}`}>
                       <Stethoscope size={11} /> Doctors
                     </span>
                     <span className="text-slate-300">•</span>
@@ -347,7 +359,7 @@ export default function HeroInteractiveSync() {
                       <p className="text-sm font-extrabold mt-2 leading-tight">
                         {slide.mockupTitle}
                       </p>
-                      <p className="text-[10px] text-blue-100 mt-0.5 leading-snug">
+                      <p className="text-[10px] text-teal-100 mt-0.5 leading-snug">
                         {slide.mockupSubtitle}
                       </p>
                       
@@ -384,7 +396,7 @@ export default function HeroInteractiveSync() {
                     <div className="space-y-1.5">
                       <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                          <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
                             <FlaskConical size={16} />
                           </div>
                           <div>
@@ -392,14 +404,14 @@ export default function HeroInteractiveSync() {
                             <p className="text-[9px] text-slate-400 mt-0.5">Accredited Pathology Testing</p>
                           </div>
                         </div>
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded-md">
                           ★ 4.9
                         </span>
                       </div>
 
                       <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
                             <Stethoscope size={16} />
                           </div>
                           <div>
@@ -407,7 +419,7 @@ export default function HeroInteractiveSync() {
                             <p className="text-[9px] text-slate-400 mt-0.5">Live Tele-Consultation Clinic</p>
                           </div>
                         </div>
-                        <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md">
                           Verified
                         </span>
                       </div>
@@ -416,7 +428,7 @@ export default function HeroInteractiveSync() {
 
                   {/* Mockup Bottom Navigation Bar */}
                   <div className="bg-white px-5 py-2.5 border-t border-slate-100 flex justify-between items-center text-[9px] text-slate-400 font-bold">
-                    <div className={`flex flex-col items-center ${activeSlide === 0 ? 'text-blue-600' : 'text-slate-400'}`}>
+                    <div className={`flex flex-col items-center ${activeSlide === 0 ? 'text-teal-600' : 'text-slate-400'}`}>
                       <HomeIcon size={14} />
                       <span>Home</span>
                     </div>
@@ -424,7 +436,7 @@ export default function HeroInteractiveSync() {
                       <FlaskConical size={14} />
                       <span>Tests</span>
                     </div>
-                    <div className={`flex flex-col items-center ${activeSlide === 2 ? 'text-indigo-600' : 'text-slate-400'}`}>
+                    <div className={`flex flex-col items-center ${activeSlide === 2 ? 'text-teal-600' : 'text-slate-400'}`}>
                       <Stethoscope size={14} />
                       <span>Doctors</span>
                     </div>

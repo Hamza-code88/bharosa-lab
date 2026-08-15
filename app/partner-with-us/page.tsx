@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -8,39 +6,25 @@ import {
   Building2, 
   Stethoscope, 
   Globe2, 
-  Send, 
-  CheckCircle, 
-  Loader2, 
   ArrowRight, 
+  ArrowUpRight,
   ShieldCheck, 
-  HeartHandshake,
-  CheckCircle2,
-  Lock
+  CheckCircle2, 
+  Phone, 
+  MessageCircle, 
+  Mail, 
+  Sparkles,
+  HeartPulse,
+  Award,
+  Layers
 } from 'lucide-react';
 
+export const metadata = {
+  title: "Partner With Us | Bharosa Lab",
+  description: "Collaborate with Bharosa Lab: Onboard your diagnostic laboratory, join our verified doctor network, or partner on institutional healthcare initiatives.",
+};
+
 export default function PartnerWithUsPage() {
-  const [partnerType, setPartnerType] = useState<'lab' | 'doctor' | 'institution'>('institution');
-  const [formData, setFormData] = useState({
-    orgName: '',
-    contactPerson: '',
-    email: '',
-    phone: '',
-    partnershipScope: '',
-    message: ''
-  });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitted(true);
-    }, 700);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-white font-sans text-slate-900">
       <Navbar />
@@ -48,16 +32,13 @@ export default function PartnerWithUsPage() {
       <main className="flex-1">
         
         {/* Page Header */}
-        <section className="bg-gradient-to-b from-blue-50/80 via-white to-white py-16 sm:py-20 border-b border-slate-100">
+        <section className="bg-gradient-to-b from-[#1E3A5F]/5 via-white to-white py-16 sm:py-20 border-b border-slate-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-blue-600 bg-blue-100/60 px-3.5 py-1.5 rounded-full border border-blue-200">
-              Collaborative Ecosystem
-            </span>
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-3xl sm:text-5xl font-black text-[#1E3A5F] tracking-tight">
               Partner With Bharosa Lab
             </h1>
             <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              We collaborate with diagnostic laboratories, doctors, and institutional health organizations to build a connected and accessible digital healthcare infrastructure.
+              We collaborate with diagnostic laboratories, medical doctors, and institutional health organizations to build connected, transparent, and accessible digital healthcare infrastructure.
             </p>
           </div>
         </section>
@@ -66,104 +47,117 @@ export default function PartnerWithUsPage() {
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             
+            <div className="text-center max-w-2xl mx-auto space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1E3A5F]">
+                Three Ways to Collaborate
+              </h2>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               
-              {/* Track A: Partner Laboratory */}
-              <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+              {/* Track 1: Partner Laboratory */}
+              <div className="bg-[#F8FAFC] rounded-3xl p-8 border border-slate-200 hover:border-teal-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center">
-                    <Building2 className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-2xl bg-[#1E3A5F] text-white flex items-center justify-center shadow-md shadow-slate-900/20 group-hover:scale-105 transition-transform">
+                    <Building2 className="w-6 h-6 text-teal-300" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900">Diagnostic Laboratories</h3>
+                  <h3 className="text-xl font-bold text-[#1E3A5F]">Diagnostic Laboratories</h3>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    Join our diagnostic network to receive patient orders, process home sample collections, and upload digital reports via the dedicated Lab Portal.
+                    Join our diagnostic network to receive patient orders, process doorstep sample collections, and upload digital PDF reports via the dedicated Lab Portal.
                   </p>
-                  <ul className="space-y-2 text-xs text-slate-700 pt-2">
+                  <ul className="space-y-2.5 text-xs text-slate-700 pt-2 font-medium">
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                      <span>Dedicated SaaS Lab Portal</span>
+                      <CheckCircle2 className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                      <span>Dedicated SaaS Lab Portal Workspace</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                      <span>Catalog and pricing controls</span>
+                      <CheckCircle2 className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                      <span>Dynamic test catalog & pricing control</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                      <span>Direct digital report submissions</span>
+                      <CheckCircle2 className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                      <span>Direct digital report distribution</span>
                     </li>
                   </ul>
                 </div>
                 <Link
                   href="/login"
-                  className="w-full py-3 text-center text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-md shadow-blue-500/20"
+                  className="w-full py-3.5 text-center text-sm font-bold text-white bg-[#1E3A5F] hover:bg-slate-900 rounded-xl transition-colors shadow-md shadow-slate-900/20 flex items-center justify-center gap-2"
                 >
-                  Onboard Your Lab
+                  <span>Onboard Your Lab</span>
+                  <ArrowRight className="w-4 h-4 text-teal-400" />
                 </Link>
               </div>
 
-              {/* Track B: Join as a Doctor */}
-              <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+              {/* Track 2: Healthcare Professionals / Doctors */}
+              <div className="bg-[#F8FAFC] rounded-3xl p-8 border border-slate-200 hover:border-teal-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center shadow-md shadow-teal-600/20 group-hover:scale-105 transition-transform">
                     <Stethoscope className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900">Healthcare Professionals</h3>
+                  <h3 className="text-xl font-bold text-[#1E3A5F]">Medical Doctors</h3>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    Provide telemedicine consultations, review diagnostic findings, and expand your accessibility to patients seeking qualified medical advice.
+                    Provide telemedicine consultations, review diagnostic laboratory findings, and connect with patients seeking expert clinical reviews.
                   </p>
-                  <ul className="space-y-2 text-xs text-slate-700 pt-2">
+                  <ul className="space-y-2.5 text-xs text-slate-700 pt-2 font-medium">
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-                      <span>Flexible consultation hours</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Custom consultation fees & schedule slots</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-                      <span>Remote patient consultation channels</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Direct tele-consultation platform</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-                      <span>Clinical history access</span>
-                    </li>
-                  </ul>
-                </div>
-                <Link
-                  href="/doctors"
-                  className="w-full py-3 text-center text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-md shadow-indigo-500/20"
-                >
-                  Join as a Doctor
-                </Link>
-              </div>
-
-              {/* Track C: Institutional / SDG Partnership */}
-              <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center">
-                    <Globe2 className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900">Institutional & Health SDGs</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Collaborate on community healthcare access, digital health initiatives, mobile diagnostic outreach, and measurable public health impact.
-                  </p>
-                  <ul className="space-y-2 text-xs text-slate-700 pt-2">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Aligned with SDG 3, 9, 10, 17</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Custom digital health pilots</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Community health outreach</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Lab test results review access</span>
                     </li>
                   </ul>
                 </div>
                 <a
-                  href="#inquiry-form"
-                  className="w-full py-3 text-center text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-md shadow-emerald-500/20"
+                  href="https://bharosa-doctor.vercel.app/auth"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 text-center text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-colors shadow-md shadow-teal-600/20 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  Inquire for Partnership
+                  <span>Doctor Portal Login</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </a>
+              </div>
+
+              {/* Track 3: Institutional & Health SDGs */}
+              <div className="bg-[#F8FAFC] rounded-3xl p-8 border border-slate-200 hover:border-emerald-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#4C9F38] text-white flex items-center justify-center shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform">
+                    <Globe2 className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-[#1E3A5F]">Institutional & SDGs</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Collaborate on community healthcare access, corporate employee health packages, mobile diagnostic outreach, and measurable SDG health impacts.
+                  </p>
+                  <ul className="space-y-2.5 text-xs text-slate-700 pt-2 font-medium">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Strategic focus on SDG 3, 9, 10 & 17</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Corporate & community screening programs</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Healthcare equality outreach</span>
+                    </li>
+                  </ul>
+                </div>
+                <a
+                  href="https://wa.me/923141811158"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 text-center text-sm font-bold text-white bg-[#4C9F38] hover:bg-emerald-700 rounded-xl transition-colors shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Discuss Institutional Partnership</span>
                 </a>
               </div>
 
@@ -172,173 +166,79 @@ export default function PartnerWithUsPage() {
           </div>
         </section>
 
-        {/* Partnership Inquiry Form */}
-        <section id="inquiry-form" className="py-16 bg-slate-50 border-t border-slate-200">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Direct Institutional Partnership & Contact Center */}
+        <section className="py-16 bg-[#F8FAFC] border-t border-slate-200/80">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-xl space-y-8">
+            <div className="bg-gradient-to-br from-[#1E3A5F] via-[#112233] to-[#0D9488]/40 rounded-3xl p-8 sm:p-12 text-white border border-teal-500/30 shadow-2xl space-y-8">
               
-              <div className="space-y-2 text-center sm:text-left">
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                  Partnership Inquiries
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                  Start a Collaboration
+              <div className="text-center max-w-2xl mx-auto space-y-3">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                  Connect Directly With Our Partnership Team
                 </h2>
-                <p className="text-slate-600 text-sm">
-                  Let us know how your organization or practice would like to work with Bharosa Lab.
+                <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+                  Whether you represent a clinical diagnostic laboratory, medical center, corporate entity, or healthcare initiative, reach out directly to explore collaboration.
                 </p>
               </div>
 
-              {submitted ? (
-                <div className="p-8 rounded-2xl bg-blue-50 border border-blue-200 text-center space-y-4">
-                  <CheckCircle className="w-12 h-12 text-blue-600 mx-auto" />
-                  <h3 className="text-xl font-bold text-blue-950">Partnership Proposal Received</h3>
-                  <p className="text-sm text-blue-800 max-w-md mx-auto">
-                    Thank you for your interest in collaborating with Bharosa Lab. Our institutional partnerships team will connect with you at <strong>{formData.email}</strong>.
-                  </p>
-                  <button
-                    onClick={() => { setSubmitted(false); }}
-                    className="text-xs font-bold text-blue-900 underline pt-2"
-                  >
-                    Submit another inquiry
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  
-                  {/* Track selector */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase">
-                      Select Partnership Track *
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setPartnerType('institution')}
-                        className={`p-3.5 rounded-xl border text-xs font-bold text-center transition-all ${
-                          partnerType === 'institution'
-                            ? 'border-emerald-600 bg-emerald-50 text-emerald-900'
-                            : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        Institutional / SDG
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPartnerType('lab')}
-                        className={`p-3.5 rounded-xl border text-xs font-bold text-center transition-all ${
-                          partnerType === 'lab'
-                            ? 'border-blue-600 bg-blue-50 text-blue-900'
-                            : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        Diagnostic Lab
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPartnerType('doctor')}
-                        className={`p-3.5 rounded-xl border text-xs font-bold text-center transition-all ${
-                          partnerType === 'doctor'
-                            ? 'border-indigo-600 bg-indigo-50 text-indigo-900'
-                            : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        Doctor / Clinic
-                      </button>
-                    </div>
+              {/* 3 Direct Contact Action Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                
+                {/* WhatsApp */}
+                <a
+                  href="https://wa.me/923141811158"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-6 rounded-2xl bg-slate-900/80 hover:bg-slate-900 border border-teal-500/30 hover:border-teal-400 transition-all text-center space-y-3 group shadow-md"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform border border-emerald-500/30">
+                    <MessageCircle className="w-6 h-6" />
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
-                    
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700 uppercase">
-                        Organization / Practice Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.orgName}
-                        onChange={(e) => setFormData({ ...formData, orgName: e.target.value })}
-                        placeholder="e.g. City Diagnostic Health Org"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-sm"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700 uppercase">
-                        Contact Person Name & Title *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.contactPerson}
-                        onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                        placeholder="e.g. Dr. Salman / Director"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-sm"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700 uppercase">
-                        Official Email *
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="contact@organization.org"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-sm"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700 uppercase">
-                        Contact Phone / WhatsApp *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="03141811158"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-sm"
-                      />
-                    </div>
-
+                  <div>
+                    <h4 className="text-base font-bold text-white">WhatsApp Chat</h4>
+                    <p className="text-xs text-slate-400 mt-1">Instant partnership inquiries</p>
                   </div>
+                  <span className="inline-block text-xs font-mono font-bold text-teal-300 bg-teal-950/60 px-3 py-1 rounded-lg border border-teal-800">
+                    03141811158
+                  </span>
+                </a>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase">
-                      Partnership Proposal & Scope *
-                    </label>
-                    <textarea
-                      rows={4}
-                      required
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      placeholder="Outline your partnership objectives, target audience, and collaboration areas..."
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 text-sm"
-                    />
+                {/* Phone Call */}
+                <a
+                  href="tel:03141811158"
+                  className="p-6 rounded-2xl bg-slate-900/80 hover:bg-slate-900 border border-teal-500/30 hover:border-teal-400 transition-all text-center space-y-3 group shadow-md"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform border border-blue-500/30">
+                    <Phone className="w-6 h-6" />
                   </div>
+                  <div>
+                    <h4 className="text-base font-bold text-white">Direct Helpline</h4>
+                    <p className="text-xs text-slate-400 mt-1">Call our support desk</p>
+                  </div>
+                  <span className="inline-block text-xs font-mono font-bold text-teal-300 bg-teal-950/60 px-3 py-1 rounded-lg border border-teal-800">
+                    03141811158
+                  </span>
+                </a>
 
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-4 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        <span>Submit Partnership Inquiry</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
+                {/* Email Support */}
+                <Link
+                  href="/contact"
+                  className="p-6 rounded-2xl bg-slate-900/80 hover:bg-slate-900 border border-teal-500/30 hover:border-teal-400 transition-all text-center space-y-3 group shadow-md"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-teal-500/20 text-teal-400 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform border border-teal-500/30">
+                    <Mail className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-white">Contact Desk</h4>
+                    <p className="text-xs text-slate-400 mt-1">Submit institutional query</p>
+                  </div>
+                  <span className="inline-block text-xs font-bold text-teal-300 bg-teal-950/60 px-3 py-1 rounded-lg border border-teal-800">
+                    Contact Page →
+                  </span>
+                </Link>
+
+              </div>
 
             </div>
 

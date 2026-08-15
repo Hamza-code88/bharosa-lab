@@ -5,23 +5,18 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { 
   Building2, 
-  TrendingUp, 
-  Laptop, 
-  FileText, 
-  Users, 
-  ShieldCheck, 
   CheckCircle2, 
   ArrowRight, 
-  Layers, 
-  Activity, 
-  Clock, 
-  Sparkles, 
-  Lock, 
-  Microscope 
+  Microscope,
+  FileCheck,
+  TrendingUp,
+  ShieldCheck,
+  Smartphone,
+  ChevronRight
 } from 'lucide-react';
 
 export const metadata = {
-  title: "Partner Laboratories | Bharosa Lab",
+  title: "Partner Labs | Bharosa Lab",
   description: "Grow your laboratory with Bharosa Lab. Digital presence, test catalog management, order processing, and digital report delivery.",
 };
 
@@ -91,11 +86,6 @@ export default function PartnerLabsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
               
               <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30">
-                  <Building2 className="w-4 h-4" />
-                  B2B Laboratory Network
-                </span>
-
                 <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
                   Grow Your Laboratory With Bharosa Lab
                 </h1>
@@ -162,16 +152,10 @@ export default function PartnerLabsPage() {
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
             
-            <div className="text-center max-w-3xl mx-auto space-y-3">
-              <span className="text-xs font-extrabold uppercase tracking-widest text-teal-700 bg-teal-50 px-3.5 py-1.5 rounded-full border border-teal-200">
-                Laboratory Value Proposition
-              </span>
+            <div className="text-center max-w-3xl mx-auto space-y-2">
               <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1E3A5F] tracking-tight">
                 10 Core Advantages for Partner Labs
               </h2>
-              <p className="text-slate-600 text-base">
-                Everything you need to digitize, manage, and scale your diagnostic laboratory.
-              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -206,16 +190,10 @@ export default function PartnerLabsPage() {
         <section id="workflow" className="py-20 bg-[#1E3A5F] text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             
-            <div className="text-center max-w-3xl mx-auto space-y-3">
-              <span className="text-xs font-extrabold uppercase tracking-widest text-teal-300 bg-teal-500/10 px-3.5 py-1.5 rounded-full border border-teal-400/20">
-                End-to-End Execution
-              </span>
+            <div className="text-center max-w-3xl mx-auto space-y-2">
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
                 How The Partner Workflow Operates
               </h2>
-              <p className="text-slate-300 text-sm sm:text-base">
-                A seamless flow connecting patient booking to final digital report delivery.
-              </p>
             </div>
 
             {/* Visual Workflow Steps */}

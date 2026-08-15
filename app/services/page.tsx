@@ -8,27 +8,37 @@ import {
   FileText, 
   Stethoscope, 
   Laptop, 
-  CheckCircle2, 
   ArrowRight, 
-  Smartphone, 
+  CheckCircle2, 
+  Smartphone,
   ShieldCheck,
   Clock,
-  MapPin,
-  FileCheck2
+  ArrowUpRight
 } from 'lucide-react';
 
 export const metadata = {
   title: "Healthcare Services | Bharosa Lab",
-  description: "Explore Bharosa Lab services: Laboratory test booking, home sample collection, digital reports, live doctor consultation, and partner lab portals.",
+  description: "Explore laboratory tests, doorstep sample collection, verified digital reports, and qualified online doctor consultations.",
 };
 
-const servicesList = [
+interface ServiceItem {
+  id: string;
+  title: string;
+  icon: any;
+  iconColor: string;
+  description: string;
+  features: string[];
+  ctaText: string;
+  ctaLink: string;
+  isExternal: boolean;
+}
+
+const servicesList: ServiceItem[] = [
   {
-    id: "lab-tests",
-    badge: "Diagnostic Access",
-    title: "Laboratory Test Booking",
+    id: "diagnostic-lab-tests",
+    title: "Diagnostic Laboratory Tests",
     icon: FlaskConical,
-    iconColor: "text-blue-600 bg-blue-50 border-blue-100",
+    iconColor: "text-teal-600 bg-teal-50 border-teal-100",
     description: "Discover available diagnostic tests and book laboratory services directly through the Bharosa Lab platform. Access a broad spectrum of pathology tests offered by verified partner laboratories.",
     features: [
       "Search and browse common and specialized medical tests",
@@ -42,10 +52,9 @@ const servicesList = [
   },
   {
     id: "home-sample-collection",
-    badge: "Convenience & Care",
     title: "Home Sample Collection",
     icon: HomeIcon,
-    iconColor: "text-indigo-600 bg-indigo-50 border-indigo-100",
+    iconColor: "text-teal-600 bg-teal-50 border-teal-100",
     description: "For eligible diagnostic tests, avoid unnecessary travel and schedule trained phlebotomist visits to collect medical samples safely from the comfort of your home.",
     features: [
       "Request sample collection for eligible diagnostic profiles",
@@ -59,7 +68,6 @@ const servicesList = [
   },
   {
     id: "digital-reports",
-    badge: "Fast & Paperless",
     title: "Digital Laboratory Reports",
     icon: FileText,
     iconColor: "text-emerald-600 bg-emerald-50 border-emerald-100",
@@ -70,16 +78,15 @@ const servicesList = [
       "Share reports easily with consulting doctors and specialists",
       "Historic test tracking for ongoing healthcare monitoring"
     ],
-    ctaText: "View Sample Reports",
+    ctaText: "Get Mobile App",
     ctaLink: "https://play.google.com/store",
     isExternal: true
   },
   {
     id: "doctor-consultation",
-    badge: "Medical Advice",
     title: "Live Doctor Consultation",
     icon: Stethoscope,
-    iconColor: "text-rose-600 bg-rose-50 border-rose-100",
+    iconColor: "text-teal-600 bg-teal-50 border-teal-100",
     description: "Connect with participating qualified doctors for online medical consultations to discuss health concerns, symptoms, and receive professional advice on diagnostic results.",
     features: [
       "Consult with qualified general practitioners and specialists",
@@ -87,16 +94,15 @@ const servicesList = [
       "Discuss lab test interpretations and follow-up guidance",
       "Review medical history in a secure digital space"
     ],
-    ctaText: "Consult a Doctor",
+    ctaText: "Doctor Network Details",
     ctaLink: "/doctors",
     isExternal: false
   },
   {
     id: "partner-lab-portal",
-    badge: "B2B SaaS Workspace",
     title: "Partner Laboratory Management Portal",
     icon: Laptop,
-    iconColor: "text-amber-600 bg-amber-50 border-amber-100",
+    iconColor: "text-[#1E3A5F] bg-blue-50 border-blue-100",
     description: "Partner laboratories receive a dedicated digital portal to manage their profile, diagnostic tests, incoming patient orders, report uploads, and Bharosa Lab earning metrics in one place.",
     features: [
       "Full control over laboratory profile, contact, and branding",
@@ -105,7 +111,7 @@ const servicesList = [
       "Digital report upload interface directly to patient accounts",
       "Billing cycle tracking, order ledgers, and platform metrics"
     ],
-    ctaText: "Access Partner Portal",
+    ctaText: "Partner Lab Login",
     ctaLink: "/login",
     isExternal: false
   }
@@ -119,12 +125,9 @@ export default function ServicesPage() {
       <main className="flex-1">
         
         {/* Page Header */}
-        <section className="bg-gradient-to-b from-blue-50/80 via-white to-white py-16 sm:py-20 border-b border-slate-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-blue-600 bg-blue-100/60 px-3.5 py-1.5 rounded-full border border-blue-200">
-              Bharosa Lab Solutions
-            </span>
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+        <section className="bg-gradient-to-b from-[#1E3A5F]/5 via-white to-white py-16 sm:py-20 border-b border-slate-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
+            <h1 className="text-3xl sm:text-5xl font-black text-[#1E3A5F] tracking-tight">
               Our Healthcare Services
             </h1>
             <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
@@ -146,19 +149,14 @@ export default function ServicesPage() {
                   key={service.id}
                   id={service.id}
                   className={`grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center p-8 sm:p-12 rounded-3xl border border-slate-200/80 shadow-sm ${
-                    isEven ? 'bg-slate-50/70' : 'bg-white'
+                    isEven ? 'bg-[#F8FAFC]' : 'bg-white'
                   }`}
                 >
                   {/* Content Column */}
                   <div className={`space-y-6 ${isEven ? 'lg:col-span-7 lg:order-2' : 'lg:col-span-7'}`}>
-                    <div className="space-y-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                        {service.badge}
-                      </span>
-                      <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                        {service.title}
-                      </h2>
-                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1E3A5F] tracking-tight">
+                      {service.title}
+                    </h2>
 
                     <p className="text-slate-600 text-base leading-relaxed">
                       {service.description}
@@ -167,7 +165,7 @@ export default function ServicesPage() {
                     <div className="space-y-2.5 pt-2">
                       {service.features.map((feat, idx) => (
                         <div key={idx} className="flex items-start gap-3 text-sm text-slate-700 font-medium">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" />
                           <span>{feat}</span>
                         </div>
                       ))}
@@ -179,18 +177,23 @@ export default function ServicesPage() {
                           href={service.ctaLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-md shadow-blue-500/20"
+                          className="inline-flex items-center gap-2.5 px-6 py-3.5 text-sm font-bold text-white bg-[#1E3A5F] hover:bg-slate-900 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
                         >
-                          <Smartphone className="w-4 h-4" />
+                          <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                            <path d="M4.06 2.15C3.76 2.47 3.59 2.97 3.59 3.63V20.37C3.59 21.03 3.76 21.53 4.06 21.85L4.13 21.92L13.51 12.54V12.46V12.38L4.13 3L4.06 2.15Z" fill="#00D3FF"/>
+                            <path d="M16.63 15.66L13.51 12.54V12.38L16.63 9.26L16.73 9.32L20.43 11.42C21.49 12.02 21.49 13.01 20.43 13.61L16.73 15.71L16.63 15.66Z" fill="#FFD300"/>
+                            <path d="M16.73 15.71L13.51 12.46L4.06 21.92C4.41 22.29 5.01 22.34 5.69 21.95L16.73 15.71Z" fill="#FF3A44"/>
+                            <path d="M16.73 9.32L5.69 3.08C5.01 2.69 4.41 2.74 4.06 3.11L13.51 12.57L16.73 9.32Z" fill="#00E676"/>
+                          </svg>
                           <span>{service.ctaText}</span>
                         </a>
                       ) : (
                         <Link
                           href={service.ctaLink}
-                          className="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all shadow-md"
+                          className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-bold text-white bg-[#1E3A5F] hover:bg-slate-900 rounded-xl transition-all shadow-md"
                         >
                           <span>{service.ctaText}</span>
-                          <ArrowRight className="w-4 h-4" />
+                          <ArrowRight className="w-4 h-4 text-teal-400" />
                         </Link>
                       )}
                     </div>
@@ -202,15 +205,15 @@ export default function ServicesPage() {
                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border ${service.iconColor}`}>
                         <Icon className="w-7 h-7" />
                       </div>
-                      <div className="space-y-2">
-                        <h3 className="text-lg font-bold text-slate-900">{service.title}</h3>
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-bold text-[#1E3A5F]">{service.title}</h3>
                         <p className="text-xs text-slate-500">
                           Integrated within the Bharosa Lab digital healthcare framework.
                         </p>
                       </div>
                       <div className="border-t border-slate-100 pt-4 flex items-center justify-between text-xs text-slate-500 font-medium">
                         <span className="flex items-center gap-1.5">
-                          <ShieldCheck className="w-4 h-4 text-blue-600" />
+                          <ShieldCheck className="w-4 h-4 text-teal-600" />
                           Verified Security
                         </span>
                         <span className="flex items-center gap-1.5">
@@ -229,12 +232,12 @@ export default function ServicesPage() {
         </section>
 
         {/* Bottom CTA */}
-        <section className="py-16 bg-slate-900 text-white text-center">
+        <section className="py-16 bg-[#1E3A5F] text-white text-center">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
               Ready to access or offer diagnostic services?
             </h2>
-            <p className="text-slate-400 text-sm max-w-xl mx-auto">
+            <p className="text-slate-300 text-sm max-w-xl mx-auto">
               Download the Bharosa Lab mobile app for patients, or sign in to your Partner Laboratory portal.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
@@ -242,13 +245,19 @@ export default function ServicesPage() {
                 href="https://play.google.com/store"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-3.5 text-sm font-bold text-slate-900 bg-white hover:bg-slate-100 rounded-xl transition-all shadow-md"
+                className="px-7 py-3.5 text-sm font-bold text-[#1E3A5F] bg-white hover:bg-slate-100 rounded-xl transition-all shadow-md flex items-center gap-2.5 active:scale-95"
               >
-                Download Mobile App
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                  <path d="M4.06 2.15C3.76 2.47 3.59 2.97 3.59 3.63V20.37C3.59 21.03 3.76 21.53 4.06 21.85L4.13 21.92L13.51 12.54V12.46V12.38L4.13 3L4.06 2.15Z" fill="#00D3FF"/>
+                  <path d="M16.63 15.66L13.51 12.54V12.38L16.63 9.26L16.73 9.32L20.43 11.42C21.49 12.02 21.49 13.01 20.43 13.61L16.73 15.71L16.63 15.66Z" fill="#FFD300"/>
+                  <path d="M16.73 15.71L13.51 12.46L4.06 21.92C4.41 22.29 5.01 22.34 5.69 21.95L16.73 15.71Z" fill="#FF3A44"/>
+                  <path d="M16.73 9.32L5.69 3.08C5.01 2.69 4.41 2.74 4.06 3.11L13.51 12.57L16.73 9.32Z" fill="#00E676"/>
+                </svg>
+                <span>Download Mobile App</span>
               </a>
               <Link
                 href="/login"
-                className="px-6 py-3.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-all shadow-md"
+                className="px-7 py-3.5 text-sm font-bold text-white bg-teal-600 hover:bg-teal-500 rounded-xl transition-all shadow-md"
               >
                 Partner Laboratory Login
               </Link>

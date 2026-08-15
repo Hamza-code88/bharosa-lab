@@ -2,7 +2,6 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Phone, MessageCircle, Instagram, Facebook, Shield, ArrowUpRight, HeartPulse, CheckCircle2 } from 'lucide-react';
-import logo from '../../public/logo.png';
 
 export default function Footer() {
   return (
@@ -33,10 +32,15 @@ export default function Footer() {
               href="https://play.google.com/store"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3.5 text-sm font-bold text-slate-200 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl transition-all text-center flex items-center justify-center gap-2"
+              className="px-6 py-3.5 text-sm font-bold text-slate-200 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl transition-all text-center flex items-center justify-center gap-2.5 active:scale-95"
             >
+              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                <path d="M4.06 2.15C3.76 2.47 3.59 2.97 3.59 3.63V20.37C3.59 21.03 3.76 21.53 4.06 21.85L4.13 21.92L13.51 12.54V12.46V12.38L4.13 3L4.06 2.15Z" fill="#00D3FF"/>
+                <path d="M16.63 15.66L13.51 12.54V12.38L16.63 9.26L16.73 9.32L20.43 11.42C21.49 12.02 21.49 13.01 20.43 13.61L16.73 15.71L16.63 15.66Z" fill="#FFD300"/>
+                <path d="M16.73 15.71L13.51 12.46L4.06 21.92C4.41 22.29 5.01 22.34 5.69 21.95L16.73 15.71Z" fill="#FF3A44"/>
+                <path d="M16.73 9.32L5.69 3.08C5.01 2.69 4.41 2.74 4.06 3.11L13.51 12.57L16.73 9.32Z" fill="#00E676"/>
+              </svg>
               <span>Download App</span>
-              <ArrowUpRight className="w-4 h-4" />
             </a>
           </div>
         </div>
@@ -48,21 +52,19 @@ export default function Footer() {
           
           {/* Col 1: Brand Info */}
           <div className="lg:col-span-2 space-y-5">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative w-11 h-11 bg-white rounded-xl p-1 shadow-sm">
+            <Link href="/" className="inline-flex flex-col group space-y-2">
+              <div className="bg-white rounded-2xl p-2.5 shadow-sm inline-block w-fit transition-transform group-hover:scale-105">
                 <Image
-                  src={logo}
+                  src="/logo.png"
                   alt="Bharosa Lab"
-                  fill
-                  className="object-contain p-1"
+                  width={200}
+                  height={100}
+                  className="h-11 sm:h-13 w-auto object-contain"
                 />
               </div>
-              <div>
-                <span className="text-2xl font-black text-white tracking-tight">
-                  Bharosa <span className="text-teal-400">Lab</span>
-                </span>
-                <p className="text-xs text-slate-400 font-medium">Where Trust Makes Life Easier</p>
-              </div>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium pl-1">
+                Where Trust Makes Life Easier
+              </p>
             </Link>
             
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
@@ -71,12 +73,16 @@ export default function Footer() {
 
             <div className="space-y-2 pt-2 text-sm text-slate-300">
               <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <span>Helpline: <strong className="text-white font-mono">03141811158</strong></span>
+                <Phone className="w-4 h-4 text-teal-400 flex-shrink-0" />
+                <a href="tel:03141811158" className="hover:text-white transition-colors">
+                  Helpline: <strong className="text-white font-mono">03141811158</strong>
+                </a>
               </div>
               <div className="flex items-center gap-3">
-                <MessageCircle className="w-4 h-4 text-teal-400 flex-shrink-0" />
-                <span>WhatsApp: <strong className="text-white font-mono">03141811158</strong></span>
+                <MessageCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <a href="https://wa.me/923141811158" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                  WhatsApp: <strong className="text-white font-mono">03141811158</strong>
+                </a>
               </div>
             </div>
 
@@ -88,6 +94,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-teal-600 text-slate-400 hover:text-white border border-slate-800 flex items-center justify-center transition-colors"
                 aria-label="Instagram"
+                title="Instagram (@bharosa_lab)"
               >
                 <Instagram className="w-4 h-4" />
               </a>
@@ -95,10 +102,21 @@ export default function Footer() {
                 href="https://facebook.com/BharosaLab"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-teal-600 text-slate-400 hover:text-white border border-slate-800 flex items-center justify-center transition-colors"
+                className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-blue-600 text-slate-400 hover:text-white border border-slate-800 flex items-center justify-center transition-colors"
                 aria-label="Facebook"
+                title="Facebook (Bharosa Lab)"
               >
                 <Facebook className="w-4 h-4" />
+              </a>
+              <a
+                href="https://wa.me/923141811158"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg bg-slate-900 hover:bg-emerald-600 text-slate-400 hover:text-white border border-slate-800 flex items-center justify-center transition-colors"
+                aria-label="WhatsApp"
+                title="WhatsApp Chat"
+              >
+                <MessageCircle className="w-4 h-4" />
               </a>
             </div>
           </div>
@@ -139,7 +157,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/doctors" className="hover:text-white transition-colors">Join as Doctor</Link>
+                <a
+                  href="https://bharosa-doctor.vercel.app/auth"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white text-teal-300 font-semibold transition-colors flex items-center gap-1.5"
+                >
+                  <span>Doctor Portal Login</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </a>
+              </li>
+              <li>
+                <Link href="/doctors" className="hover:text-white transition-colors">Doctor Network Info</Link>
               </li>
               <li>
                 <Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link>

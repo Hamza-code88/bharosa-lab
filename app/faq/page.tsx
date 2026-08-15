@@ -1,23 +1,24 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import FAQAccordion from '../components/FAQAccordion';
-import { allFaqs } from '@/lib/faqData';
-import { HelpCircle, Search, MessageCircle, Phone } from 'lucide-react';
-import Link from 'next/link';
+import { allFaqs, faqCategories } from '@/lib/faqData';
+import { Search, HelpCircle, ArrowRight, MessageCircle } from 'lucide-react';
 
 export default function FAQPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const categories = ['All', 'General & Patients', 'Partner Laboratories', 'Doctors & Partners', 'Support & Contact'];
+  const categories = ['All', ...faqCategories];
 
   const filteredFaqs = allFaqs.filter((item) => {
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-    const matchesSearch = item.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          item.answer.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = 
+      item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.answer.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -28,12 +29,9 @@ export default function FAQPage() {
       <main className="flex-1">
         
         {/* Header */}
-        <section className="bg-gradient-to-b from-blue-50/80 via-white to-white py-16 sm:py-20 border-b border-slate-100">
+        <section className="bg-gradient-to-b from-[#1E3A5F]/5 via-white to-white py-16 sm:py-20 border-b border-slate-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-blue-600 bg-blue-100/60 px-3.5 py-1.5 rounded-full border border-blue-200">
-              Knowledge Base
-            </span>
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-3xl sm:text-5xl font-black text-[#1E3A5F] tracking-tight">
               Frequently Asked Questions
             </h1>
             <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
@@ -47,7 +45,7 @@ export default function FAQPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search questions (e.g. sample collection, portal, earnings)..."
-                className="w-full px-5 py-4 pl-12 rounded-2xl border border-slate-200 shadow-sm focus:outline-none focus:border-blue-500 text-sm"
+                className="w-full px-5 py-4 pl-12 rounded-2xl border border-slate-200 shadow-sm focus:outline-none focus:border-teal-500 text-sm"
               />
               <Search className="w-5 h-5 text-slate-400 absolute left-4 top-7.5" />
             </div>
@@ -66,7 +64,7 @@ export default function FAQPage() {
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
                     selectedCategory === cat
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                      ? 'bg-[#1E3A5F] text-white shadow-md shadow-slate-900/15'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
@@ -87,15 +85,15 @@ export default function FAQPage() {
             )}
 
             {/* Direct Help Callout */}
-            <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200 text-center space-y-4">
-              <h3 className="text-lg font-bold text-slate-900">Still have a question?</h3>
+            <div className="p-8 rounded-3xl bg-[#F8FAFC] border border-slate-200 text-center space-y-4">
+              <h3 className="text-lg font-bold text-[#1E3A5F]">Still have a question?</h3>
               <p className="text-sm text-slate-600 max-w-md mx-auto">
                 Our support team is available to assist you with any questions or technical guidance.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
                 <Link
                   href="/contact"
-                  className="px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all"
+                  className="px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-all"
                 >
                   Contact Support
                 </Link>
