@@ -9,6 +9,18 @@ export default function PlatformSettingsPage() {
   const [endTime, setEndTime] = useState('18:00:00');
   const [isPaused, setIsPaused] = useState(false);
   const [registrationFee, setRegistrationFee] = useState(5000);
+  
+  // AI & Support Settings
+  const [aiModelName, setAiModelName] = useState('openai/gpt-oss-20b');
+  const [groqApiKey, setGroqApiKey] = useState('');
+  const [aiApiEndpoint, setAiApiEndpoint] = useState('https://api.groq.com/openai/v1/chat/completions');
+  const [supportWhatsapp, setSupportWhatsapp] = useState('923444488448');
+  const [supportPhone, setSupportPhone] = useState('03444488448');
+  const [supportEmail, setSupportEmail] = useState('bharosalabo@gmail.com');
+  const [termsAndConditions, setTermsAndConditions] = useState(
+    `1. تعارف و خدمات (Introduction):\nبھروسہ لیب ایک ڈیجیٹل ہیلتھ کیئر پلیٹ فارم ہے جو مریضوں کو مستند میڈیکل لیبارٹریز سے ہوم سیمپلنگ اور ماہر ڈاکٹرز سے آن لائن کنسلٹیشن فراہم کرتا ہے۔\n\n2. طبی دستبرداری (Medical Disclaimer):\nتمام ٹیسٹ رپورٹس متعلقہ رجسٹرڈ لیبارٹریز کی جانب سے جاری کی جاتی ہیں۔ ایپ پر دی جانے والی تجاویز کسی مستند ڈاکٹر کے متبادل نہیں ہیں۔\n\n3. ہوم کلیکشن و فیس (Home Sampling):\nہوم کلیکشن کی سروس دستیاب رائیڈرز اور طے شدہ اوقات کے مطابق فراہم کی جاتی ہے۔ لوکیشن کی بنیاد پر اضافی فیس لاگو ہو سکتی ہے۔\n\n4. پرائیویسی و رازداری (Privacy & Confidentiality):\nآپ کا ذاتی ڈیٹا اور میڈیکل ریکارڈز مکمل طور پر خفیہ رکھے جاتے ہیں اور صرف متعلقہ ڈاکٹر اور لیب کے ساتھ شیئر کیے جاتے ہیں۔`
+  );
+
   const [facebookUrl, setFacebookUrl] = useState('');
   const [twitterUrl, setTwitterUrl] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
@@ -30,7 +42,7 @@ export default function PlatformSettingsPage() {
 
       const { data: appData } = await supabase
         .from('app_settings')
-        .select('registration_fee')
+        .select('*')
         .eq('id', 1)
         .maybeSingle();
 
@@ -44,8 +56,15 @@ export default function PlatformSettingsPage() {
         setLinkedinUrl(data.linkedin_url || '');
       }
       
-      if (appData && appData.registration_fee !== undefined) {
-        setRegistrationFee(appData.registration_fee);
+      if (appData) {
+        if (appData.registration_fee !== undefined) setRegistrationFee(appData.registration_fee);
+        if (appData.ai_model_name) setAiModelName(appData.ai_model_name);
+        if (appData.groq_api_key) setGroqApiKey(appData.groq_api_key);
+        if (appData.ai_api_endpoint) setAiApiEndpoint(appData.ai_api_endpoint);
+        if (appData.support_whatsapp) setSupportWhatsapp(appData.support_whatsapp);
+        if (appData.support_phone) setSupportPhone(appData.support_phone);
+        if (appData.support_email) setSupportEmail(appData.support_email);
+        if (appData.terms_and_conditions) setTermsAndConditions(appData.terms_and_conditions);
       }
     } catch (err) {
       console.error(err);
@@ -76,8 +95,19 @@ export default function PlatformSettingsPage() {
         await supabase.from('platform_settings').insert(payload);
       }
 
-      // 🔴 Update Registration Fee in app_settings (id=1)
-      await supabase.from('app_settings').update({ registration_fee: registrationFee }).eq('id', 1);
+      // 🔴 Update app_settings (id=1) with Registration Fee, AI model, Endpoint, Support Info, and Terms
+      await supabase.from('app_settings').upsert({
+        id: 1,
+        registration_fee: registrationFee,
+        ai_model_name: aiModelName,
+        groq_api_key: groqApiKey || null,
+        ai_api_endpoint: aiApiEndpoint || 'https://api.groq.com/openai/v1/chat/completions',
+        support_whatsapp: supportWhatsapp,
+        support_phone: supportPhone,
+        support_email: supportEmail,
+        terms_and_conditions: termsAndConditions,
+        updated_at: new Date().toISOString()
+      });
       
       alert('Platform Settings Updated Successfully!');
     } catch (err: any) {
@@ -213,6 +243,119 @@ export default function PlatformSettingsPage() {
               className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-medium"
             />
           </div>
+        </div>
+      </div>
+
+      {/* AI Doctor & Patient Support Settings */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
+        <div className="p-5 sm:p-6 border-b border-gray-100 bg-gray-50/50">
+          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            🤖 AI Doctor & Customer Support Settings
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Configure the live Groq AI model name and helpline contacts for the Patient App without needing to publish a new APK.
+          </p>
+        </div>
+        
+        <div className="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Groq AI Model Name</label>
+            <input 
+              type="text" 
+              value={aiModelName}
+              onChange={(e) => setAiModelName(e.target.value)}
+              placeholder="e.g. openai/gpt-oss-20b"
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-bold font-mono"
+            />
+            <p className="text-xs text-gray-400 mt-1">Default: openai/gpt-oss-20b (Active Production Model)</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Groq / AI API Key</label>
+            <input 
+              type="password" 
+              value={groqApiKey}
+              onChange={(e) => setGroqApiKey(e.target.value)}
+              placeholder="Paste custom API key"
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-medium"
+            />
+            <p className="text-xs text-gray-400 mt-1">Leave empty to use default .env key</p>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-bold text-gray-700 mb-2">AI API Endpoint URL</label>
+            <input 
+              type="url" 
+              value={aiApiEndpoint}
+              onChange={(e) => setAiApiEndpoint(e.target.value)}
+              placeholder="https://api.groq.com/openai/v1/chat/completions"
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-mono text-gray-700"
+            />
+            <p className="text-xs text-gray-400 mt-1">Default: https://api.groq.com/openai/v1/chat/completions (Change to OpenRouter, DeepSeek, or Together AI if Groq becomes paid in future)</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Support WhatsApp Number</label>
+            <input 
+              type="text" 
+              value={supportWhatsapp}
+              onChange={(e) => setSupportWhatsapp(e.target.value)}
+              placeholder="e.g. 923444488448"
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-medium"
+            />
+            <p className="text-xs text-gray-400 mt-1">Country code format without + (e.g. 923444488448)</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Support Helpline Phone</label>
+            <input 
+              type="text" 
+              value={supportPhone}
+              onChange={(e) => setSupportPhone(e.target.value)}
+              placeholder="e.g. 03444488448"
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-medium"
+            />
+            <p className="text-xs text-gray-400 mt-1">Local phone format for direct dialing</p>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-bold text-gray-700 mb-2">Official Support Email</label>
+            <input 
+              type="email" 
+              value={supportEmail}
+              onChange={(e) => setSupportEmail(e.target.value)}
+              placeholder="e.g. bharosalabo@gmail.com"
+              className="w-full px-4 py-3 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm font-medium"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Terms & Conditions (شرائط و ضوابط) */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
+        <div className="p-5 sm:p-6 border-b border-gray-100 bg-gray-50/50">
+          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            📜 Patient App Terms & Conditions (شرائط و ضوابط)
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Edit the legal terms, medical disclaimer, and home collection rules displayed to first-time patients and in the app's Terms section.
+          </p>
+        </div>
+
+        <div className="p-5 sm:p-6">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Terms & Conditions Content (قوانین و ضوابط)
+          </label>
+          <textarea 
+            rows={8}
+            value={termsAndConditions}
+            onChange={(e) => setTermsAndConditions(e.target.value)}
+            placeholder="Enter full legal terms, service rules, and disclaimers..."
+            className="w-full p-4 bg-gray-50 text-gray-900 rounded-xl border border-gray-200 focus:border-blue-500 outline-none text-sm leading-relaxed font-medium"
+          />
+          <p className="text-xs text-gray-400 mt-2">
+            Tip: You can write in Urdu, English, or both. Line breaks will be preserved in the mobile app.
+          </p>
         </div>
       </div>
 

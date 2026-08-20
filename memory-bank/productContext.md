@@ -1,16 +1,22 @@
 # Product Context
 
 ## Target Audience
-The application serves two primary user personas:
-1. **Lab Owners / Managers:** Seeking to digitize their laboratory operations, track patient bookings, and manage test inventories. They require an easy-to-use platform with transparent billing and straightforward payment mechanisms.
-2. **Platform Super Admins:** The owners of Bharosa Lab, needing tools to oversee all registered labs, enforce commission limits, approve manual payments (Easypaisa, JazzCash, SadaPay), and track billing history.
+The application serves three distinct user personas:
+1. **Patients & Families:** Searching for verified diagnostic tests, doorstep phlebotomy sample collection, digital PDF test reports, and live doctor consultations.
+2. **Diagnostic Laboratory Owners & Managers:** Seeking to digitize their laboratory operations, accept incoming sample orders, upload PDF reports, and manage test inventories via the dedicated Lab Portal with transparent commission billing.
+3. **Healthcare Professionals / Doctors:** Qualified medical practitioners seeking to consult patients online and review diagnostic results via the Doctor Portal (`https://bharosa-doctor.vercel.app/auth`).
+4. **Platform Super Admins:** The owners of Bharosa Lab, managing platform settings, reviewing lab registrations, approving manual payments (Easypaisa, JazzCash, SadaPay), and tracking billing history.
 
-## Problem Solved
-Traditional lab management systems are single-tenant, expensive, or lack integrated billing. Lab-Ghar provides a unified SaaS solution:
-- It eliminates the friction of manual follow-ups for commission collection by automatically locking the lab's dashboard when thresholds are met.
-- Provides an intuitive Hostinger-style secure checkout for labs to upload payment proofs.
-- Bridges the gap between admin review and user notification via automated Discord webhook alerts equipped with pre-formatted email templates.
+## Direct Communication & Official Channels
+- **Official Helpline (Phone):** `03141811158` (`tel:03141811158`)
+- **Official WhatsApp Support:** `03141811158` (`https://wa.me/923141811158`)
+- **Official Email:** `bharosalabo@gmail.com` (`mailto:bharosalabo@gmail.com`)
+- **Official Instagram:** `@bharosa_lab` (`https://instagram.com/bharosa_lab`)
+- **Official Facebook:** `Bharosa Lab` (`https://facebook.com/BharosaLab`)
+- **Doctor Portal Auth:** `https://bharosa-doctor.vercel.app/auth`
+- **Partner Lab Login:** `/login`
 
-## User Experience Highlights
-- **Labs:** Get a clean dashboard, 30-day trials, and a transparent payment page with real-time countdown timers.
-- **Admins:** A consolidated Super Admin Billing panel (`super-admin/billing/page.tsx`) offering ledger history, search functionality, toggle switches for portal access, and settings modal for app-wide commission rates and bank details.
+## Design & UI Standards
+- **Color Theme:** Strictly Navy Blue (`#1E3A5F`, `#0B132B`) and SDG Emerald / Teal (`#4C9F38`, `teal-600`, `emerald-600`).
+- **Brand Slogan:** *"Where Trust Makes Life Easier"*.
+- **No Cluttered Badges:** Free from AI-style top pill tags or repetitive filler subtitles.
