@@ -130,6 +130,121 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Sustainable Development Goals (SDG) Alignment */}
+        <section className="py-20 bg-white border-b border-slate-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            
+            <div className="text-center max-w-3xl mx-auto space-y-3">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1E3A5F] tracking-tight">
+                Our Social Impact & SDG Alignment
+              </h2>
+              <p className="text-slate-600 text-base leading-relaxed">
+                We believe healthcare is a fundamental human right. Bharosa Lab aligns its mission with global sustainable development goals and pledges support to deserving communities.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              
+              {/* SDG 1 */}
+              <div className="bg-[#F8FAFC] rounded-3xl p-6 border-2 border-red-200 shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+                <div className="h-1.5 bg-[#E5243B] absolute top-0 left-0 right-0" />
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-[#E5243B] text-white font-black text-sm flex items-center justify-center shadow-md shadow-red-600/20">
+                    SDG 1
+                  </div>
+                  <span className="text-[10px] font-bold text-[#E5243B] uppercase tracking-wider bg-red-50 px-2 py-0.5 rounded-md">
+                    2% Healthcare Pledge
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">No Poverty</h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Pledging 2% of future platform earnings to fund essential diagnostic tests and medical assistance for underprivileged families.
+                  </p>
+                </div>
+              </div>
+
+              {/* SDG 3 */}
+              <div className="bg-[#F8FAFC] rounded-3xl p-6 border-2 border-emerald-200 shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+                <div className="h-1.5 bg-[#4C9F38] absolute top-0 left-0 right-0" />
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-[#4C9F38] text-white font-black text-sm flex items-center justify-center shadow-md shadow-emerald-600/20">
+                    SDG 3
+                  </div>
+                  <span className="text-[10px] font-bold text-[#4C9F38] uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded-md">
+                    Primary Focus
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Good Health & Well-Being</h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Expanding convenient access to timely diagnostic testing, verified lab results, and qualified doctor consultations.
+                  </p>
+                </div>
+              </div>
+
+              {/* SDG 9 */}
+              <div className="bg-[#F8FAFC] rounded-3xl p-6 border-2 border-amber-200 shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+                <div className="h-1.5 bg-[#F36D25] absolute top-0 left-0 right-0" />
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-[#F36D25] text-white font-black text-sm flex items-center justify-center shadow-md shadow-amber-600/20">
+                    SDG 9
+                  </div>
+                  <span className="text-[10px] font-bold text-[#F36D25] uppercase tracking-wider bg-amber-50 px-2 py-0.5 rounded-md">
+                    Infrastructure
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Industry & Innovation</h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Providing modern SaaS infrastructure for local pathology laboratories to manage workflows digitally.
+                  </p>
+                </div>
+              </div>
+
+              {/* SDG 10 */}
+              <div className="bg-[#F8FAFC] rounded-3xl p-6 border-2 border-rose-200 shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+                <div className="h-1.5 bg-[#DD1367] absolute top-0 left-0 right-0" />
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-[#DD1367] text-white font-black text-sm flex items-center justify-center shadow-md shadow-rose-600/20">
+                    SDG 10
+                  </div>
+                  <span className="text-[10px] font-bold text-[#DD1367] uppercase tracking-wider bg-rose-50 px-2 py-0.5 rounded-md">
+                    Equitable Access
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Reduced Inequalities</h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Removing geographic, mobility, and travel barriers for elderly, remote, and vulnerable patients.
+                  </p>
+                </div>
+              </div>
+
+              {/* SDG 17 */}
+              <div className="bg-[#F8FAFC] rounded-3xl p-6 border-2 border-blue-200 shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+                <div className="h-1.5 bg-[#19486A] absolute top-0 left-0 right-0" />
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-[#19486A] text-white font-black text-sm flex items-center justify-center shadow-md shadow-blue-900/20">
+                    SDG 17
+                  </div>
+                  <span className="text-[10px] font-bold text-[#19486A] uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-md">
+                    Collaboration
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Partnerships for Goals</h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Uniting diagnostic laboratories, healthcare practitioners, and community organizations into one ecosystem.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
         {/* Global Impact Summary */}
         <section className="py-20 bg-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">

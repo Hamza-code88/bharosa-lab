@@ -30,9 +30,14 @@ The application is in a fully synchronized, production-ready state following a s
 - Restrained color palette strictly to **Navy Blue (`#1E3A5F`, `#0B132B`)** and **SDG Emerald / Green / Teal (`#4C9F38`, `teal-600`, `emerald-600`)**.
 - Eliminated extraneous pink, purple, and random multi-color gradients while preserving authentic UN SDG colors for SDG 3 (Green), SDG 9 (Orange), SDG 10 (Rose/Magenta), and SDG 17 (Navy).
 
-### 6. Super Admin Dynamic Terms & Conditions & System Settings
-- **Terms & Conditions Control**: Added dynamic `terms_and_conditions` textarea field in Super Admin Settings (`app/super-admin/settings/page.tsx`) saved directly into Supabase `app_settings` (id = 1), powering mandatory user acceptance in the mobile app.
-- **Push Notification Backend (`app/api/push/route.ts` & `lib/sendNotification.ts`)**: Integrated Expo Push Notification proxy (`https://exp.host/--/api/v2/push/send`) triggering high-priority status change alerts to patients whenever a lab accepts, processes, or completes an order.
+### 7. Social Impact & UN SDG Alignment (Including SDG 1 Pledge)
+- **SDG 1 (No Poverty - 2% Healthcare Pledge)**: Integrated UN SDG 1 into the official impact alignment on both Homepage (`app/page.tsx`) and About Page (`app/about/page.tsx`), officially documenting Bharosa Lab's pledge to allocate **2% of future platform revenue** towards sponsoring essential diagnostic tests and medical assistance for underprivileged families.
+- **5-Pillar UN SDG Framework**:
+  1. *SDG 1 (No Poverty - 2% Pledge)*
+  2. *SDG 3 (Good Health & Well-Being - Primary Mission)*
+  3. *SDG 9 (Industry, Innovation & Infrastructure - Pathology SaaS)*
+  4. *SDG 10 (Reduced Inequalities - Home Phlebotomy Access)*
+  5. *SDG 17 (Partnerships for the Goals - Lab & Doctor Network)*
 
 ## Next Steps
 - Stand ready for the user's next set of features or enhancements.

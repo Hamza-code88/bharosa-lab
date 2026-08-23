@@ -500,8 +500,27 @@ export default function HomePage() {
             </div>
 
             {/* SDG Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
               
+              {/* SDG 1 */}
+              <div className="bg-white rounded-3xl p-6 border-2 border-red-200 shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+                <div className="h-1.5 bg-[#E5243B] absolute top-0 left-0 right-0" />
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-[#E5243B] text-white font-black text-sm flex items-center justify-center shadow-md shadow-red-600/20">
+                    SDG 1
+                  </div>
+                  <span className="text-[10px] font-bold text-[#E5243B] uppercase tracking-wider bg-red-50 px-2 py-0.5 rounded-md">
+                    2% Healthcare Pledge
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">No Poverty</h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Pledging 2% of future platform earnings to sponsor essential diagnostic tests and consultations for underprivileged families.
+                  </p>
+                </div>
+              </div>
+
               {/* SDG 3 */}
               <div className="bg-white rounded-3xl p-6 border-2 border-emerald-200 shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
                 <div className="h-1.5 bg-[#4C9F38] absolute top-0 left-0 right-0" />
