@@ -23,6 +23,7 @@
 - [x] Brand Logo asset optimization (677x369 landscape rendering with tagline underneath).
 - [x] Removed all AI-looking pill badges and generic subtitles across all pages.
 - [x] Strict Navy Blue (`#1E3A5F`) + SDG Emerald / Teal theme enforcement.
+- [x] Official Google Play Store Live App URL (`https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab`) configured across all website download CTAs.
 - [x] UN SDG 1 (No Poverty - 2% Healthcare Pledge) officially integrated across Homepage and About page.
 - [x] Next.js 16 Turbopack build verified (30/30 static and dynamic routes compiled).
 

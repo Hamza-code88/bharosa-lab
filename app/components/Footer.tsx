@@ -29,7 +29,7 @@ export default function Footer() {
               Partner With Us
             </Link>
             <a
-              href="https://play.google.com/store"
+              href="https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab"
               target="_blank"
               rel="noopener noreferrer"
               className="px-6 py-3.5 text-sm font-bold text-slate-200 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl transition-all text-center flex items-center justify-center gap-2.5 active:scale-95"

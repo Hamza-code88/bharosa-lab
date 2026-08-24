@@ -47,7 +47,7 @@ const servicesList: ServiceItem[] = [
       "Centralized appointment and test management"
     ],
     ctaText: "Book via Mobile App",
-    ctaLink: "https://play.google.com/store",
+    ctaLink: "https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab",
     isExternal: true
   },
   {
@@ -63,7 +63,7 @@ const servicesList: ServiceItem[] = [
       "Direct transit to partner laboratories for processing"
     ],
     ctaText: "Request Home Collection",
-    ctaLink: "https://play.google.com/store",
+    ctaLink: "https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab",
     isExternal: true
   },
   {
@@ -79,7 +79,7 @@ const servicesList: ServiceItem[] = [
       "Historic test tracking for ongoing healthcare monitoring"
     ],
     ctaText: "Get Mobile App",
-    ctaLink: "https://play.google.com/store",
+    ctaLink: "https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab",
     isExternal: true
   },
   {

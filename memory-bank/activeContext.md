@@ -39,6 +39,10 @@ The application is in a fully synchronized, production-ready state following a s
   4. *SDG 10 (Reduced Inequalities - Home Phlebotomy Access)*
   5. *SDG 17 (Partnerships for the Goals - Lab & Doctor Network)*
 
+### 8. Official Google Play Store Live App Integration
+- **Live Play Store URL**: Replaced all temporary/dummy download links across the website (`Navbar.tsx`, `Footer.tsx`, `HeroInteractiveSync.tsx`, `services/page.tsx`) with the official live Google Play Store URL:
+  `https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab`
+
 ## Next Steps
 - Stand ready for the user's next set of features or enhancements.
 - Maintain existing standards: no unrequested builds, preserve clean Navy/Emerald theme, direct channel routing, and no cluttered AI pill tags.

@@ -121,7 +121,7 @@ export default function Navbar() {
         {/* Single Primary Action: Download App with Google Play Icon */}
         <div className="hidden sm:flex items-center">
           <a
-            href="https://play.google.com/store"
+            href="https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2.5 px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#1E3A5F] to-teal-600 hover:from-slate-900 hover:to-teal-700 rounded-xl transition-all shadow-md shadow-slate-900/15 active:scale-95 cursor-pointer"
@@ -139,7 +139,7 @@ export default function Navbar() {
         {/* Mobile menu button */}
         <div className="flex lg:hidden items-center gap-2">
           <a
-            href="https://play.google.com/store"
+            href="https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab"
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 bg-gradient-to-r from-[#1E3A5F] to-teal-600 text-white rounded-xl shadow-xs active:scale-95 flex items-center justify-center"
@@ -182,7 +182,7 @@ export default function Navbar() {
 
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
             <a
-              href="https://play.google.com/store"
+              href="https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-3 text-center text-sm font-bold text-white bg-gradient-to-r from-[#1E3A5F] to-teal-600 rounded-xl shadow-md flex items-center justify-center gap-2"
