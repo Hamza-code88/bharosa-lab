@@ -1,12 +1,13 @@
 {
-  "name": "Bharosa Lab",
-  "short_name": "Bharosa Lab",
-  "description": "Manage lab bookings and system settings",
-  "start_url": "/",
+  "name": "Bharosa Lab - Partner Portal",
+  "short_name": "Lab Portal",
+  "description": "Diagnostic Laboratory SaaS Portal - Manage test orders, phlebotomy & digital reports",
+  "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2563EB",
-  "orientation": "portrait",
+  "theme_color": "#1E3A5F",
+  "orientation": "any",
   "icons": [
     {
       "src": "/icon-192x192.png",

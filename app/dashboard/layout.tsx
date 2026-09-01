@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Menu } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import PwaInstallPrompt from '../components/PwaInstallPrompt';
 
 export default function DashboardLayout({
   children,
@@ -128,7 +129,7 @@ export default function DashboardLayout({
   // 👇 Yahan se aapka original design
   return (
     <div className="flex h-screen bg-[#F8FAFC]">
-      
+      <PwaInstallPrompt />
       <Sidebar isMobileMenuOpen={isMobileMenuOpen} onCloseMobile={() => setIsMobileMenuOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
