@@ -105,6 +105,8 @@ export default function OrdersManagementPage() {
       const testPrice = selectedTest?.price || 0;
       const totalAmount = testPrice + Number(deliveryFee);
 
+      const testTitle = selectedTest?.master_tests?.title || 'Diagnostic Test';
+
       // Insert Booking
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
@@ -112,11 +114,13 @@ export default function OrdersManagementPage() {
           patient_id: null, // Always null for manual Call/WhatsApp orders
           lab_id: selectedLabId,
           total_amount: totalAmount,
-          status: 'pending',
+          delivery_fee: Number(deliveryFee) || 50,
+          test_names: testTitle,
+          status: 'Pending',
           patient_address: patientAddress,
           patient_phone: patientPhone,
           patient_name: patientName,
-          patient_age: patientAge,
+          patient_age: patientAge ? Number(patientAge) : null,
           patient_gender: patientGender,
           booking_source: 'whatsapp_call'
         })
