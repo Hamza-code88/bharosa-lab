@@ -140,7 +140,48 @@ export default function OrdersManagementPage() {
 
       if (itemError) throw itemError;
 
-      alert("Manual order created successfully! It will now appear in the Rider's app.");
+      // 🛑 Broadcast Push Notification to all active Riders
+      try {
+        const { data: activeRiders } = await supabase
+          .from('profiles')
+          .select('push_token')
+          .eq('role', 'rider')
+          .not('push_token', 'is', null);
+
+        if (activeRiders && activeRiders.length > 0) {
+          const pushMessages = activeRiders
+            .filter(r => r.push_token && r.push_token.startsWith('ExponentPushToken'))
+            .map(r => ({
+              to: r.push_token,
+              sound: 'order_alert.wav',
+              title: `🛵 New Order: Rs. ${totalAmount}`,
+              body: `Pickup: ${patientName} (${patientAddress || 'New pickup address'})`,
+              data: {
+                orderId: booking.id,
+                type: 'NEW_ORDER'
+              },
+              channelId: 'order-alerts',
+              priority: 'high',
+              _displayInForeground: true
+            }));
+
+          if (pushMessages.length > 0) {
+            await fetch('https://exp.host/--/api/v2/push/send', {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Accept-Encoding': 'gzip, deflate',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(pushMessages),
+            });
+          }
+        }
+      } catch (pushErr) {
+        console.error("Error sending push notification to riders:", pushErr);
+      }
+
+      alert("Manual order created successfully! Push notifications broadcasted to riders.");
       setIsModalOpen(false);
       
       // Reset form

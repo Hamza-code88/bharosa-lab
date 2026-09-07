@@ -4,7 +4,8 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Menu } from 'lucide-react';
+import { Loader2, Menu, Volume2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Sidebar from '../components/Sidebar';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
 
@@ -126,6 +127,40 @@ export default function DashboardLayout({
     );
   }
 
+  const testAlertSound = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        const playTone = (freq: number, start: number, dur: number) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + start);
+          gain.gain.setValueAtTime(0.5, now + start);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + start + dur);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + start);
+          osc.stop(now + start + dur);
+        };
+        playTone(784, 0, 0.25);
+        playTone(1046, 0.2, 0.35);
+        playTone(784, 0.5, 0.25);
+        playTone(1175, 0.7, 0.45);
+      }
+      const audio = new Audio('/sounds/order_alert.wav');
+      audio.play().catch(() => {});
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate([0, 300, 100, 300]);
+      }
+      toast.success("Order Alert Sound Active! 🔔");
+    } catch (e) {
+      console.warn("Test sound error:", e);
+    }
+  };
+
   // 👇 Yahan se aapka original design
   return (
     <div className="flex h-screen bg-[#F8FAFC]">
@@ -146,11 +181,21 @@ export default function DashboardLayout({
           </div>
           
           <div className="flex items-center gap-3">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-            </span>
-            <span className="text-sm font-bold text-gray-600 tracking-wide uppercase">System Online</span>
+            <button
+              onClick={testAlertSound}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition active:scale-95 shadow-xs"
+              title="Test Order Alert Sound and Unlock Audio"
+            >
+              <Volume2 size={15} />
+              <span>Test Sound</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              </span>
+              <span className="text-sm font-bold text-gray-600 tracking-wide uppercase hidden sm:inline">System Online</span>
+            </div>
           </div>
         </header>
 
