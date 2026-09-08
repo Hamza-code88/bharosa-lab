@@ -135,6 +135,74 @@ export default function BookingsManagerPage() {
           "Aapke test ki report upload ho gayi hai. App mein check karein!"
         );
       }
+
+      // 🛑 Send report notification and file to Discord #reports channel
+      try {
+        const testTitles = currentBooking?.booking_items?.map((item: any) => item.lab_tests?.master_tests?.title).filter(Boolean).join(', ') || currentBooking?.test_names || 'Diagnostic Tests';
+
+        let labName = 'Partner Diagnostic Lab';
+        let labCity = '';
+        if (labId) {
+          const { data: labInfo } = await supabase.from('labs').select('name, city').eq('id', labId).maybeSingle();
+          if (labInfo?.name) labName = labInfo.name;
+          if (labInfo?.city) labCity = labInfo.city;
+        }
+
+        const reportPayload = {
+          bookingId: activeUploadBookingId,
+          reportUrl: publicUrl,
+          patientName: currentBooking?.patient_name || 'Patient',
+          patientPhone: currentBooking?.patient_phone || '',
+          patientAge: currentBooking?.patient_age || '',
+          patientGender: currentBooking?.patient_gender || '',
+          testNames: testTitles,
+          totalAmount: currentBooking?.total_amount || 0,
+          labName,
+          labCity,
+        };
+
+        let sent = false;
+        try {
+          const apiRes = await fetch('/api/discord/report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reportPayload),
+          });
+          if (apiRes.ok) sent = true;
+        } catch (apiErr) {
+          console.warn("API route dispatch failed, trying direct webhook...", apiErr);
+        }
+
+        // Direct fallback if API route fails or is not yet compiled
+        if (!sent) {
+          const webhookUrl = process.env.NEXT_PUBLIC_DISCORD_REPORTS_WEBHOOK_URL || 'https://discord.com/api/webhooks/1546709938871476355/A9nm7hcHBowlEcuOnb-mnjbgAUAYd9CYzV3LpR6nYb21-wV91_48wE3oIQm2px41IYnM';
+          await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: 'Bharosa Reports Bot',
+              avatar_url: 'https://ksclwdqyqielntcsawbf.supabase.co/storage/v1/object/public/logos/bharosa-logo.png',
+              embeds: [{
+                title: '📄 New Patient Test Report Uploaded!',
+                description: `A diagnostic lab has finalized and uploaded a medical report for patient **${reportPayload.patientName}**.`,
+                color: 0x2563EB,
+                fields: [
+                  { name: '👤 Patient Details', value: `**Name:** ${reportPayload.patientName}\n**Phone:** ${reportPayload.patientPhone || 'N/A'}\n**Demographics:** ${reportPayload.patientAge ? `${reportPayload.patientAge} Y` : 'N/A'} • ${reportPayload.patientGender || 'N/A'}`, inline: true },
+                  { name: '🏥 Laboratory', value: `**${reportPayload.labName}**\n📍 ${reportPayload.labCity || 'Verified Partner'}`, inline: true },
+                  { name: '🧪 Tests Conducted', value: reportPayload.testNames, inline: false },
+                  { name: '💰 Order Amount', value: `Rs. ${reportPayload.totalAmount}`, inline: true },
+                  { name: '🆔 Booking ID', value: `\`${reportPayload.bookingId}\``, inline: true },
+                  { name: '📥 Report Access', value: reportPayload.reportUrl ? `[🔗 Click to Open / Download Report](${reportPayload.reportUrl})` : 'N/A', inline: false },
+                ],
+                footer: { text: 'Bharosa Healthcare • Realtime Report Dispatch' },
+                timestamp: new Date().toISOString(),
+              }],
+            }),
+          });
+        }
+      } catch (discordErr) {
+        console.warn("Discord report webhook error:", discordErr);
+      }
     } catch (error: any) {
       alert("Upload Failed: " + error.message);
     } finally {
