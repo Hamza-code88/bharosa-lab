@@ -100,9 +100,8 @@ export default function NotificationListener() {
     }
   };
 
-  // 3. Check & Trigger Force Activation Popup for All Labs (Existing & New)
+  // 3. Background Audio Unlock on First Touch
   useEffect(() => {
-    // Background unlock on any document interaction
     const onFirstUserInteraction = () => {
       unlockAudioEngine();
     };
@@ -111,23 +110,7 @@ export default function NotificationListener() {
     window.addEventListener('touchstart', onFirstUserInteraction, { once: true });
     window.addEventListener('keydown', onFirstUserInteraction, { once: true });
 
-    // Check if permission or audio needs force activation popup
-    const checkNeedPopup = () => {
-      if (typeof window === 'undefined') return;
-
-      const isPermissionGranted = 'Notification' in window && Notification.permission === 'granted';
-      const isSoundUnlocked = localStorage.getItem('bharosa_lab_sound_unlocked') === 'true';
-
-      // If either notification permission is not granted or sound has never been explicitly tested/unlocked:
-      if (!isPermissionGranted || !isSoundUnlocked) {
-        setShowPermissionModal(true);
-      }
-    };
-
-    const timer = setTimeout(checkNeedPopup, 1200);
-
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('click', onFirstUserInteraction);
       window.removeEventListener('touchstart', onFirstUserInteraction);
       window.removeEventListener('keydown', onFirstUserInteraction);
@@ -149,10 +132,15 @@ export default function NotificationListener() {
     unlockAudioEngine();
     playAlertSound();
 
-    // 3. Save State & Dismiss Modal
+    // 3. Save State & Dismiss Modal permanently
     setShowPermissionModal(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bharosa_lab_sound_unlocked', 'true');
+      localStorage.setItem('bharosa_lab_alert_dismissed', 'true');
+    }
+
     toast.success("Order Sound & Notifications Activated! 🔔", {
-      duration: 5000,
+      duration: 4000,
       icon: '✅',
       style: {
         background: '#eff6ff',
@@ -160,6 +148,14 @@ export default function NotificationListener() {
         border: '1px solid #bfdbfe'
       }
     });
+  };
+
+  // 4b. Dismiss Modal Handler (Remembers user choice so it doesn't bother them on refresh)
+  const handleDismissModal = () => {
+    setShowPermissionModal(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bharosa_lab_alert_dismissed', 'true');
+    }
   };
 
   // 5. Robust Lab ID Resolution (Automatic for both Existing & New Labs)
@@ -199,6 +195,26 @@ export default function NotificationListener() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // 5b. Show activation modal ONLY for logged-in labs who haven't enabled or dismissed it yet
+  useEffect(() => {
+    if (!labId) return;
+    if (typeof window === 'undefined') return;
+
+    const isDismissed = localStorage.getItem('bharosa_lab_alert_dismissed') === 'true';
+    const isSoundUnlocked = localStorage.getItem('bharosa_lab_sound_unlocked') === 'true';
+
+    // If already enabled or dismissed, do NOT show
+    if (isDismissed || isSoundUnlocked) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setShowPermissionModal(true);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [labId]);
 
   // 6. Realtime Booking Alerts Listener
   useEffect(() => {
@@ -318,8 +334,8 @@ export default function NotificationListener() {
 
             <button
               type="button"
-              onClick={() => setShowPermissionModal(false)}
-              className="mt-3 text-xs text-gray-400 hover:text-gray-600 font-semibold py-1.5 transition"
+              onClick={handleDismissModal}
+              className="mt-3 text-xs text-gray-400 hover:text-gray-600 font-semibold py-1.5 transition cursor-pointer"
             >
               I will enable later
             </button>

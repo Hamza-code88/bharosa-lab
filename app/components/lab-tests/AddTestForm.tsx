@@ -103,31 +103,92 @@ export default function AddTestForm({ labId, masterTests, onTestAdded, onPreview
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTestId || !price || !time) {
-      alert("Please fill all the details (Test, Price, and Time)!");
+    const cleanSearch = searchQuery.trim();
+    if (!cleanSearch) {
+      alert("Please enter or select a test name!");
+      return;
+    }
+    if (!price || isNaN(Number(price))) {
+      alert("Please enter a valid test price (e.g. 500)!");
+      return;
+    }
+    if (!time.trim()) {
+      alert("Please enter report turnaround time (e.g. 24 Hours)!");
       return;
     }
 
     setIsSaving(true);
     try {
-      const { error } = await supabase.from('lab_tests').insert({
-        lab_id: labId,
-        test_id: selectedTestId, 
-        price: parseInt(price),
-        turnaround_time: time,
-        is_home_collection: isHome
-      });
+      let finalTestId = selectedTestId;
 
-      if (error) throw error;
-      
-      alert("Test Added Successfully!");
-      onTestAdded(); 
-      
+      // If test ID wasn't explicitly selected from dropdown, auto-match or auto-create
+      if (!finalTestId) {
+        const exactMatch = masterTests.find(
+          (t: MasterTest) => t.title.toLowerCase().trim() === cleanSearch.toLowerCase()
+        );
+        if (exactMatch) {
+          finalTestId = exactMatch.id;
+        } else {
+          // Auto create in master_tests
+          const { data: newMaster, error: masterErr } = await supabase
+            .from('master_tests')
+            .insert({
+              title: cleanSearch,
+              about: 'Custom diagnostic medical test.',
+              preparation: 'Please follow standard lab instructions.'
+            })
+            .select()
+            .single();
+
+          if (masterErr) throw masterErr;
+          if (newMaster) finalTestId = newMaster.id;
+        }
+      }
+
+      if (!finalTestId) {
+        throw new Error("Could not resolve test ID. Please select a test from the list.");
+      }
+
+      // Check if test already exists in this lab's catalog, update or insert
+      const { data: existingLabTest } = await supabase
+        .from('lab_tests')
+        .select('id')
+        .eq('lab_id', labId)
+        .eq('test_id', finalTestId)
+        .maybeSingle();
+
+      if (existingLabTest) {
+        const { error: updateErr } = await supabase
+          .from('lab_tests')
+          .update({
+            price: parseInt(price),
+            turnaround_time: time.trim(),
+            is_home_collection: isHome,
+          })
+          .eq('id', existingLabTest.id);
+
+        if (updateErr) throw updateErr;
+        alert("Test price updated successfully!");
+      } else {
+        const { error: insertErr } = await supabase.from('lab_tests').insert({
+          lab_id: labId,
+          test_id: finalTestId,
+          price: parseInt(price),
+          turnaround_time: time.trim(),
+          is_home_collection: isHome,
+        });
+
+        if (insertErr) throw insertErr;
+        alert("Test added successfully to catalog!");
+      }
+
+      onTestAdded();
       setSelectedTestId('');
       setSearchQuery('');
       setPrice('');
-      setTime(''); 
-    } catch (error: unknown) { 
+      setTime('');
+      setIsDropdownOpen(false);
+    } catch (error: unknown) {
       if (error instanceof Error) {
         alert('Error: ' + error.message);
       }
@@ -239,11 +300,11 @@ export default function AddTestForm({ labId, masterTests, onTestAdded, onPreview
 
         <button 
           type="submit" 
-          disabled={isSaving || !selectedTestId} 
-          className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 sm:py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base shadow-sm shadow-blue-600/20"
+          disabled={isSaving} 
+          className="w-full mt-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 sm:py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base shadow-sm shadow-blue-600/20 cursor-pointer"
         >
           {isSaving ? <Loader2 className="animate-spin" size={18} /> : <PlusCircle size={18} />}
-          {isSaving ? 'Adding...' : 'Add Test'}
+          {isSaving ? 'Saving Test...' : 'Add Test'}
         </button>
       </form>
     </div>
