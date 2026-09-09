@@ -121,11 +121,11 @@ export default function BookingsManagerPage() {
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage.from('reports').getPublicUrl(fileName);
-      const { error: dbError } = await supabase.from('bookings').update({ report_url: publicUrl }).eq('id', activeUploadBookingId);
+      const { error: dbError } = await supabase.from('bookings').update({ report_url: publicUrl, status: 'Completed' }).eq('id', activeUploadBookingId);
       if (dbError) throw dbError;
 
       alert("🎉 Report Uploaded Successfully! Patient can now see it in their app.");
-      setBookings(prev => prev.map(b => b.id === activeUploadBookingId ? { ...b, report_url: publicUrl } : b));
+      setBookings(prev => prev.map(b => b.id === activeUploadBookingId ? { ...b, report_url: publicUrl, status: 'Completed' } : b));
 
       const currentBooking = bookings.find(b => b.id === activeUploadBookingId);
       if (currentBooking && currentBooking.patient_id) {
@@ -226,10 +226,10 @@ export default function BookingsManagerPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'pending': return <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 w-max"><AlertCircle className="w-3 h-3"/> PENDING</span>;
-      case 'accepted': return <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 w-max"><CheckCircle className="w-3 h-3"/> ACCEPTED</span>;
+      case 'pending': return <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 w-max"><AlertCircle className="w-3 h-3"/> AWAITING RIDER PICKUP</span>;
+      case 'accepted': return <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 w-max"><CheckCircle className="w-3 h-3"/> RIDER ASSIGNED</span>;
       case 'on the way': return <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 w-max"><Navigation className="w-3 h-3"/> RIDER ON THE WAY</span>;
-      case 'sample collected': return <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 w-max"><FlaskConical className="w-3 h-3"/> SAMPLE COLLECTED</span>;
+      case 'sample collected': return <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 w-max"><FlaskConical className="w-3 h-3"/> SAMPLE IN LAB / TESTING</span>;
       case 'completed': return <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 w-max"><FileCheck className="w-3 h-3"/> COMPLETED</span>;
       case 'cancelled': return <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 w-max"><Lock className="w-3 h-3"/> CANCELLED</span>;
       default: return <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold w-max">{status}</span>;
@@ -366,19 +366,34 @@ export default function BookingsManagerPage() {
                         )}
                       </>
                     ) : (
-                      <select 
-                        value={booking.status}
-                        disabled={updatingId === booking.id}
-                        onChange={(e) => handleStatusChange(booking.id, e.target.value, booking.patient_id)}
-                        className="w-full sm:w-auto bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-blue-600 focus:border-blue-600 block p-3 sm:p-2.5 font-bold cursor-pointer transition-all shadow-sm"
-                      >
-                        {statusLower === 'pending' && <option value="Pending">Pending</option>}
-                        {(statusLower === 'pending' || statusLower === 'accepted') && <option value="Accepted">Accept Order</option>}
-                        {statusLower === 'on the way' && <option value="On The Way" disabled>Rider On The Way</option>}
-                        {statusLower === 'sample collected' && <option value="Sample Collected" disabled>Sample Collected</option>}
-                        {(statusLower === 'sample collected' || statusLower === 'completed') && <option value="Completed">Mark Completed</option>}
-                        <option value="Cancelled">Cancel Order</option>
-                      </select>
+                      <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                        {statusLower === 'sample collected' ? (
+                          <button
+                            onClick={() => triggerFileSelect(booking.id)}
+                            disabled={uploadingReportId === booking.id}
+                            className="w-full sm:w-auto justify-center bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm rounded-xl px-4 py-2.5 font-bold flex items-center gap-2 transition-all shadow-md shadow-green-600/20"
+                          >
+                            {uploadingReportId === booking.id ? (
+                              <><Loader2 className="w-4 h-4 animate-spin" /> Uploading Report...</>
+                            ) : (
+                              <><UploadCloud className="w-4 h-4" /> Upload Report & Complete</>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            {statusLower === 'pending' ? 'Awaiting Rider Pickup' : 'Rider Dispatched'}
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() => handleStatusChange(booking.id, 'Cancelled', booking.patient_id)}
+                          disabled={updatingId === booking.id}
+                          className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-2 rounded-xl transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
