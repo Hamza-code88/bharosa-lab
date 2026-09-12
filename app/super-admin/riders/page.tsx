@@ -3,7 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
-import { Bike, Search, UserPlus, MapPin, CheckCircle, Ban, Loader2, Settings, Save, X, Phone, Mail, Check, AlertCircle } from 'lucide-react';
+import { Bike, Search, UserPlus, MapPin, CheckCircle, Ban, Loader2, Settings, Save, X, Phone, Mail, Check, AlertCircle, Plus, Trash2 } from 'lucide-react';
+
+export interface DeliveryTier {
+  id: string;
+  min_km: number;
+  max_km: number;
+  fee: number;
+}
+
+const DEFAULT_TIERS: DeliveryTier[] = [
+  { id: '1', min_km: 0, max_km: 2, fee: 100 },
+  { id: '2', min_km: 2, max_km: 4, fee: 200 },
+  { id: '3', min_km: 4, max_km: 6, fee: 250 },
+  { id: '4', min_km: 6, max_km: 8, fee: 300 },
+  { id: '5', min_km: 8, max_km: 10, fee: 350 },
+  { id: '6', min_km: 10, max_km: 14, fee: 450 },
+  { id: '7', min_km: 14, max_km: 20, fee: 600 },
+];
 
 export interface RiderProfile {
   id: string;
@@ -24,9 +41,10 @@ export default function RiderManagementPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved'>('all');
 
   // Delivery Rates & Distance States
-  const [baseFee, setBaseFee] = useState<number>(50);
-  const [perKmFee, setPerKmFee] = useState<number>(20);
-  const [maxDistance, setMaxDistance] = useState<number>(10);
+  const [baseFee, setBaseFee] = useState<number>(100);
+  const [perKmFee, setPerKmFee] = useState<number>(25);
+  const [maxDistance, setMaxDistance] = useState<number>(25);
+  const [tiers, setTiers] = useState<DeliveryTier[]>(DEFAULT_TIERS);
   const [isSavingRates, setIsSavingRates] = useState(false);
 
   // Add Rider Modal States
@@ -62,9 +80,14 @@ export default function RiderManagementPage() {
     try {
       const { data } = await supabase.from('app_settings').select('*').eq('id', 1).maybeSingle();
       if (data) {
-        setBaseFee(data.base_delivery_fee || 50);
-        setPerKmFee(data.per_km_fee || 20);
-        setMaxDistance(data.max_order_distance_km || 10);
+        setBaseFee(data.base_delivery_fee || 100);
+        setPerKmFee(data.per_km_fee || 25);
+        setMaxDistance(data.max_order_distance_km || 25);
+        if (data.delivery_tiers && Array.isArray(data.delivery_tiers) && data.delivery_tiers.length > 0) {
+          setTiers(data.delivery_tiers);
+        } else {
+          setTiers(DEFAULT_TIERS);
+        }
       }
     } catch (err) {
       console.error("Error fetching rates:", err);
@@ -92,18 +115,75 @@ export default function RiderManagementPage() {
   const handleUpdateRates = async () => {
     setIsSavingRates(true);
     try {
+      const sortedTiers = [...tiers].sort((a, b) => Number(a.min_km) - Number(b.min_km));
+      
+      const payload: any = {
+        base_delivery_fee: Number(sortedTiers[0]?.fee) || baseFee,
+        per_km_fee: Number(perKmFee),
+        max_order_distance_km: Number(maxDistance),
+        delivery_tiers: sortedTiers,
+      };
+
       const { error } = await supabase
         .from('app_settings')
-        .update({ base_delivery_fee: baseFee, per_km_fee: perKmFee, max_order_distance_km: maxDistance })
+        .update(payload)
         .eq('id', 1);
+
+      if (error) {
+        // If delivery_tiers column is not yet in Supabase schema, update base columns gracefully
+        if (error.message?.includes('delivery_tiers')) {
+          console.warn("delivery_tiers column not created in Supabase yet, falling back to base columns");
+          const fallbackPayload = {
+            base_delivery_fee: Number(sortedTiers[0]?.fee) || baseFee,
+            per_km_fee: Number(perKmFee),
+            max_order_distance_km: Number(maxDistance),
+          };
+          const { error: fallbackError } = await supabase
+            .from('app_settings')
+            .update(fallbackPayload)
+            .eq('id', 1);
+          if (fallbackError) throw fallbackError;
+          alert("Base delivery rates updated! (Tip: Run 'ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS delivery_tiers jsonb;' in Supabase SQL to persist custom slabs table)");
+          return;
+        }
+        throw error;
+      }
       
-      if (error) throw error;
-      alert("Delivery rates updated successfully! New bookings will use these rates.");
+      alert("Delivery tiers & rates updated successfully! New patient bookings will use these exact rates.");
     } catch (error: any) {
       alert("Failed to update rates: " + error.message);
     } finally {
       setIsSavingRates(false);
     }
+  };
+
+  const handleAddTier = () => {
+    const lastTier = tiers[tiers.length - 1];
+    const newMin = lastTier ? Number(lastTier.max_km) : 0;
+    const newMax = newMin + 2;
+    const newFee = lastTier ? Number(lastTier.fee) + 50 : 100;
+    
+    setTiers([
+      ...tiers,
+      {
+        id: Date.now().toString(),
+        min_km: newMin,
+        max_km: newMax,
+        fee: newFee,
+      }
+    ]);
+  };
+
+  const handleRemoveTier = (id: string) => {
+    if (tiers.length <= 1) {
+      alert("You must keep at least 1 distance tier.");
+      return;
+    }
+    setTiers(tiers.filter(t => t.id !== id));
+  };
+
+  const handleTierChange = (id: string, field: keyof DeliveryTier, value: number) => {
+    setTiers(tiers.map(t => t.id === id ? { ...t, [field]: value } : t));
   };
 
   const handleApproveAccess = async (riderId: string, currentName: string | null) => {
@@ -229,54 +309,145 @@ export default function RiderManagementPage() {
         </button>
       </div>
 
-      {/* GLOBAL DELIVERY RATES CONTROL PANEL */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm mb-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-        <div className="flex items-center gap-4 relative z-10">
-          <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-            <Settings size={24} />
+      {/* GLOBAL DYNAMIC DELIVERY TIERS & RATES CONTROL PANEL */}
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm mb-8 relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center shadow-xs shrink-0">
+              <Settings size={28} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Delivery Slabs & Distance Engine</h2>
+                <span className="bg-emerald-50 text-emerald-700 text-xs font-black px-2.5 py-0.5 rounded-full border border-emerald-100">
+                  Live Patient App Sync
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 font-medium mt-0.5">
+                Define exact distance brackets and flat fees. Changes apply live to patient checkout without editing mobile code.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-extrabold text-gray-900">Delivery Rates & Distance Engine</h2>
-            <p className="text-xs text-gray-500 font-medium">Automatic delivery calculation for patient sampling checkout.</p>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleAddTier}
+              type="button"
+              className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 text-sm shadow-2xs"
+            >
+              <Plus size={16} /> Add Distance Slab
+            </button>
+            <button
+              onClick={handleUpdateRates}
+              disabled={isSavingRates}
+              type="button"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 disabled:opacity-70 text-sm shadow-md shadow-indigo-600/20"
+            >
+              {isSavingRates ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              {isSavingRates ? 'Saving Changes...' : 'Save All Rates'}
+            </button>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 relative z-10 w-full md:w-auto">
-          <div className="flex flex-col flex-1 md:flex-none">
-            <label className="text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Base Fee (Rs)</label>
-            <input
-              type="number"
-              value={baseFee}
-              onChange={(e) => setBaseFee(Number(e.target.value))}
-              className="w-full md:w-28 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-bold text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+        {/* Dynamic Distance Tiers Grid / Table */}
+        <div className="mt-6">
+          <h3 className="text-xs font-black uppercase text-gray-400 tracking-wider mb-3">
+            Active Distance Tiers (KM Ranges & Flat Fees)
+          </h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+            {tiers.map((tier, idx) => (
+              <div 
+                key={tier.id || idx} 
+                className="bg-gray-50/80 hover:bg-gray-50 border border-gray-200/80 hover:border-indigo-200 rounded-2xl p-4 transition-all relative group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-100">
+                    Slab #{idx + 1}
+                  </span>
+                  {tiers.length > 1 && (
+                    <button
+                      onClick={() => handleRemoveTier(tier.id)}
+                      type="button"
+                      title="Delete Slab"
+                      className="text-gray-400 hover:text-red-600 p-1 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5 mb-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Min (KM)</label>
+                    <input
+                      type="number"
+                      value={tier.min_km}
+                      onChange={(e) => handleTierChange(tier.id, 'min_km', Number(e.target.value))}
+                      className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Max (KM)</label>
+                    <input
+                      type="number"
+                      value={tier.max_km}
+                      onChange={(e) => handleTierChange(tier.id, 'max_km', Number(e.target.value))}
+                      className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-gray-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Exact Fee (PKR)</label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1.5 text-xs font-bold text-gray-400">Rs.</span>
+                    <input
+                      type="number"
+                      value={tier.fee}
+                      onChange={(e) => handleTierChange(tier.id, 'fee', Number(e.target.value))}
+                      className="w-full bg-white border border-gray-200 rounded-lg pl-9 pr-2.5 py-1.5 text-sm font-black text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="flex flex-col flex-1 md:flex-none">
-            <label className="text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Per KM Fee (Rs)</label>
-            <input
-              type="number"
-              value={perKmFee}
-              onChange={(e) => setPerKmFee(Number(e.target.value))}
-              className="w-full md:w-28 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-bold text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+        </div>
+
+        {/* Global Fallback & Out-of-Range Controls */}
+        <div className="mt-6 pt-5 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50/60 p-3.5 rounded-2xl border border-gray-200/60 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-extrabold text-gray-800">Beyond Max Slab (Extra KM Rate)</p>
+              <p className="text-[11px] text-gray-400 font-medium">Added per extra KM if patient is farther than highest slab.</p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-xs font-bold text-gray-500">Rs.</span>
+              <input
+                type="number"
+                value={perKmFee}
+                onChange={(e) => setPerKmFee(Number(e.target.value))}
+                className="w-20 bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-sm font-black text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center"
+              />
+            </div>
           </div>
-          <div className="flex flex-col flex-1 md:flex-none">
-            <label className="text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Max Radius (KM)</label>
-            <input
-              type="number"
-              value={maxDistance}
-              onChange={(e) => setMaxDistance(Number(e.target.value))}
-              className="w-full md:w-28 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl font-bold text-gray-900 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+
+          <div className="bg-gray-50/60 p-3.5 rounded-2xl border border-gray-200/60 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-extrabold text-gray-800">Max Delivery Radius Limit</p>
+              <p className="text-[11px] text-gray-400 font-medium">Orders farther than this will be rejected with Out of Range alert.</p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <input
+                type="number"
+                value={maxDistance}
+                onChange={(e) => setMaxDistance(Number(e.target.value))}
+                className="w-20 bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-sm font-black text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center"
+              />
+              <span className="text-xs font-bold text-gray-500">KM</span>
+            </div>
           </div>
-          <button
-            onClick={handleUpdateRates}
-            disabled={isSavingRates}
-            className="mt-4 w-full md:w-auto bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-70 text-sm shadow-sm"
-          >
-            {isSavingRates ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-            {isSavingRates ? 'Saving...' : 'Save Rates'}
-          </button>
         </div>
       </div>
 
