@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Megaphone, Bike, ShieldAlert, PhoneCall, CreditCard, FileText, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Megaphone, Bike, ShieldAlert, PhoneCall, CreditCard, FileText, Settings, Menu, X, Package } from 'lucide-react';
 
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
 
   const navItems = [
     { name: 'All Data (Analytics)', href: '/super-admin/dashboard', icon: LayoutDashboard },
+    { name: 'Health Packages', href: '/super-admin/packages', icon: Package },
     { name: 'Orders Management', href: '/super-admin/orders', icon: FileText },
     { name: 'Ad Manager', href: '/super-admin/ads', icon: Megaphone },
     { name: 'Rider Management', href: '/super-admin/riders', icon: Bike },
