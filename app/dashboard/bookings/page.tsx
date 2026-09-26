@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { resolveActiveLab, LAB_CHANGED_EVENT } from '@/lib/activeLab';
 import { Loader2, ClipboardList, Phone, MapPin, User, Clock, AlertCircle, Lock, UploadCloud, FileCheck, TestTube, CheckCircle, Navigation, FlaskConical } from 'lucide-react';
 import { sendPushNotification } from '../../../lib/sendNotification';
 
@@ -14,14 +15,13 @@ export default function BookingsManagerPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadBookingId, setActiveUploadBookingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const initData = async () => {
-      setIsLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: lab } = await supabase.from('labs').select('id').eq('owner_id', session.user.id).single();
-        if (lab) {
-          setLabId(lab.id);
+  const initData = async () => {
+    setIsLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { activeLab: lab } = await resolveActiveLab(session.user.id);
+      if (lab) {
+        setLabId(lab.id);
           
           const { data: fetchedBookings, error: fetchError } = await supabase
             .from('bookings')
@@ -48,7 +48,11 @@ export default function BookingsManagerPage() {
       }
       setIsLoading(false);
     };
+
+  useEffect(() => {
     initData();
+    window.addEventListener(LAB_CHANGED_EVENT, initData);
+    return () => window.removeEventListener(LAB_CHANGED_EVENT, initData);
   }, []);
 
   useEffect(() => {

@@ -19,6 +19,7 @@ import {
   Activity
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase'; 
+import { resolveActiveLab, LAB_CHANGED_EVENT } from '@/lib/activeLab'; 
 
 interface BookingRecord {
   id: string;
@@ -64,11 +65,7 @@ export default function DashboardPage() {
         if (!session?.user) return;
 
         // 1. Fetch Lab info & last cleared date
-        const { data: lab } = await supabase
-          .from('labs')
-          .select('id, last_cleared_date')
-          .eq('owner_id', session.user.id)
-          .single();
+        const { activeLab: lab } = await resolveActiveLab(session.user.id);
           
         if (!lab) {
           setIsLoading(false);
@@ -82,7 +79,10 @@ export default function DashboardPage() {
           .eq('id', 1)
           .single();
           
-        const rate = settings?.commission_percentage || 0;
+        const globalRate = settings?.commission_percentage || 0;
+        const rate = (lab.commission_percentage !== null && lab.commission_percentage !== undefined)
+          ? Number(lab.commission_percentage)
+          : globalRate;
         setCommissionRate(rate);
 
         // 3. Fetch all bookings with items & test names for analytics
@@ -149,6 +149,8 @@ export default function DashboardPage() {
     };
 
     fetchDashboardStats();
+    window.addEventListener(LAB_CHANGED_EVENT, fetchDashboardStats);
+    return () => window.removeEventListener(LAB_CHANGED_EVENT, fetchDashboardStats);
   }, []);
 
   // =========================================================================

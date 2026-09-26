@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image'; 
 import { supabase } from '@/lib/supabase';
+import { resolveActiveLab, LabItem, LAB_CHANGED_EVENT } from '@/lib/activeLab';
 import { Smartphone, Image as ImageIcon, MapPin, Phone, User, Activity, CheckCircle2, Star, MoreVertical } from 'lucide-react';
 
 import BasicInfo, { LabData } from '../../components/labprofile/BasicInfo'; 
@@ -15,6 +16,7 @@ export default function PremiumLabProfile() {
     latitude: '', longitude: ''
   });
   
+  const [activeLab, setActiveLab] = useState<LabItem | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -28,6 +30,8 @@ export default function PremiumLabProfile() {
   useEffect(() => {
     fetchExistingData();
     fetchPlatformSettings(); 
+    window.addEventListener(LAB_CHANGED_EVENT, fetchExistingData);
+    return () => window.removeEventListener(LAB_CHANGED_EVENT, fetchExistingData);
   }, []);
 
   const fetchPlatformSettings = async () => {
@@ -49,8 +53,10 @@ export default function PremiumLabProfile() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserId(session.user.id);
-        const { data: dbData } = await supabase.from('labs').select('*').eq('owner_id', session.user.id).maybeSingle();
+        const { activeLab: currentLab } = await resolveActiveLab(session.user.id);
+        setActiveLab(currentLab);
         
+        const dbData = currentLab as any;
         if (dbData) {
           let lat = '', lng = '';
           if (dbData.location_pin) {
@@ -122,12 +128,10 @@ export default function PremiumLabProfile() {
       }
 
       const dataToSave = {
-        owner_id: userId,
         name: labData.name,
         city: labData.city,
         address: labData.address,
         experience_years: labData.experience_years === '' ? null : parseInt(String(labData.experience_years)),
-        // 🛑 THE MAGIC TRICK: Hamesha platform number save karo, taake app mein yahi show ho
         phone_number: platformNumber !== 'Fetching...' ? platformNumber : '+92 3XX XXXXXXX', 
         speciality: labData.speciality,
         owner_name: labData.owner_name,
@@ -141,9 +145,16 @@ export default function PremiumLabProfile() {
         closing_time: labData.closing_time || '22:00:00',
       };
 
-      const { error } = await supabase.from('labs').upsert(dataToSave, { onConflict: 'owner_id' });
+      let saveError;
+      if (activeLab?.id) {
+        const { error } = await supabase.from('labs').update(dataToSave).eq('id', activeLab.id);
+        saveError = error;
+      } else {
+        const { error } = await supabase.from('labs').upsert({ ...dataToSave, owner_id: userId }, { onConflict: 'owner_id' });
+        saveError = error;
+      }
 
-      if (error) throw error;
+      if (saveError) throw saveError;
       alert('Profile Saved Successfully! 🚀');
     } catch (err: unknown) { 
       if (err instanceof Error) {

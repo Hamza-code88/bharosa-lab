@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image'; 
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, TestTube, ClipboardList, Settings, LogOut, ChevronLeft, ChevronRight, Package } from 'lucide-react';
+import { LayoutDashboard, TestTube, ClipboardList, Settings, LogOut, ChevronLeft, ChevronRight, Package, Users } from 'lucide-react';
 import logo from '../../public/logo.png'; 
 
 export default function Sidebar({ isMobileMenuOpen = false, onCloseMobile }: { isMobileMenuOpen?: boolean, onCloseMobile?: () => void }) {
@@ -35,6 +35,7 @@ export default function Sidebar({ isMobileMenuOpen = false, onCloseMobile }: { i
     { name: 'My Tests & Prices', href: '/dashboard/tests', icon: TestTube },
     { name: 'Health Packages', href: '/dashboard/packages', icon: Package },
     { name: 'Lab Profile', href: '/dashboard/labprofile', icon: Settings },
+    { name: 'Staff & Team', href: '/dashboard/staff', icon: Users },
   ];
 
   return (

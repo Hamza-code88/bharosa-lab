@@ -1,4 +1,3 @@
-// app/dashboard/layout.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -8,6 +7,8 @@ import { Loader2, Menu, Volume2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Sidebar from '../components/Sidebar';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
+import LabSwitcher from '../components/LabSwitcher';
+import { resolveActiveLab, LabItem, LAB_CHANGED_EVENT } from '@/lib/activeLab';
 
 export default function DashboardLayout({
   children,
@@ -18,8 +19,10 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // 🛑 NAYA: Mobile Sidebar State
+  const [activeLab, setActiveLab] = useState<LabItem | null>(null);
+  const [allLabs, setAllLabs] = useState<LabItem[]>([]);
 
-  // 🛑 NAYA: High-Security Auth & Rolling Threshold Guard
+  // 🛑 NAYA: High-Security Auth & Rolling Threshold Guard (Multi-Lab & Staff Support)
   useEffect(() => {
     const checkAuthAndBilling = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -29,12 +32,10 @@ export default function DashboardLayout({
         return;
       }
 
-      // 1. Fetch Lab Security Data
-      const { data: lab } = await supabase
-        .from('labs')
-        .select('id, name, is_active, payment_status, last_cleared_date, created_at, is_registered_paid, registration_status')
-        .eq('owner_id', session.user.id)
-        .maybeSingle();
+      // 1. Fetch Authorized Lab (Owner or Active Staff Member)
+      const { activeLab: lab, allLabs: userLabs } = await resolveActiveLab(session.user.id);
+      setActiveLab(lab);
+      setAllLabs(userLabs);
 
       const currentPath = window.location.pathname;
 
@@ -48,15 +49,17 @@ export default function DashboardLayout({
         return;
       }
 
-      // 1.2 ONBOARDING: No Tests Added
-      const { count: testCount } = await supabase.from('lab_tests').select('*', { count: 'exact', head: true }).eq('lab_id', lab.id);
-      if (testCount === 0) {
-        if (!currentPath.includes('/dashboard/tests') && !currentPath.includes('/dashboard/labprofile')) {
-          router.replace('/dashboard/tests');
-        } else {
-          setIsAuthorized(true);
+      // 1.2 ONBOARDING: No Tests Added (Only check for Owner)
+      if (lab.user_role === 'owner') {
+        const { count: testCount } = await supabase.from('lab_tests').select('*', { count: 'exact', head: true }).eq('lab_id', lab.id);
+        if (testCount === 0) {
+          if (!currentPath.includes('/dashboard/tests') && !currentPath.includes('/dashboard/labprofile')) {
+            router.replace('/dashboard/tests');
+          } else {
+            setIsAuthorized(true);
+          }
+          return;
         }
-        return;
       }
 
       // 1.3 TRIAL CHECK: 30 Days Registration
@@ -78,7 +81,10 @@ export default function DashboardLayout({
       try {
         // Fetch Settings for Rate & Threshold
         const { data: settings } = await supabase.from('app_settings').select('commission_percentage, commission_threshold').eq('id', 1).single();
-        const rate = settings?.commission_percentage || 0;
+        const globalRate = settings?.commission_percentage || 0;
+        const rate = (lab.commission_percentage !== null && lab.commission_percentage !== undefined)
+          ? Number(lab.commission_percentage)
+          : globalRate;
         const threshold = settings?.commission_threshold || 2000;
 
         // Fetch Bookings generated AFTER the last_cleared_date
@@ -177,7 +183,9 @@ export default function DashboardLayout({
             >
               <Menu size={24} />
             </button>
-            <h1 className="text-xl font-extrabold text-gray-800 tracking-tight">Partner Portal</h1>
+            <h1 className="text-xl font-extrabold text-gray-800 tracking-tight hidden lg:block">Partner Portal</h1>
+            <div className="h-6 w-px bg-slate-200 hidden lg:block" />
+            <LabSwitcher currentLab={activeLab} allLabs={allLabs} />
           </div>
           
           <div className="flex items-center gap-3">

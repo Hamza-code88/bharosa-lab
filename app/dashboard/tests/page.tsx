@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
+import { resolveActiveLab, LAB_CHANGED_EVENT } from '@/lib/activeLab';
 import AddTestForm from '../../components/lab-tests/AddTestForm';
 import BulkAddTestForm from '../../components/lab-tests/BulkAddTestForm';
 import TestList from '../../components/lab-tests/TestList';
@@ -63,14 +64,10 @@ export default function TestsManagerPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      const { data: lab } = await supabase
-        .from('labs')
-        .select('id, name, city, logo_url, rating')
-        .eq('owner_id', session.user.id)
-        .single();
+      const { activeLab: lab } = await resolveActiveLab(session.user.id);
         
       if (!lab) { setIsLoading(false); return; }
-      setLabInfo(lab as LabInfo);
+      setLabInfo(lab as unknown as LabInfo);
 
       const { data: mTests } = await supabase.from('master_tests').select('*').order('title');
       if (mTests) setMasterTests(mTests as MasterTestItem[]);
@@ -89,7 +86,11 @@ export default function TestsManagerPage() {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+    window.addEventListener(LAB_CHANGED_EVENT, loadData);
+    return () => window.removeEventListener(LAB_CHANGED_EVENT, loadData);
+  }, []);
 
   if (isLoading) return <div className="flex justify-center items-center h-[60vh]"><Loader2 className="w-10 h-10 animate-spin text-blue-600" /></div>;
   if (!labInfo) return <div className="text-center mt-20 text-red-500 font-bold px-4">Please setup Lab Profile first!</div>;

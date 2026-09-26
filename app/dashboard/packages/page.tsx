@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { resolveActiveLab, LAB_CHANGED_EVENT } from '@/lib/activeLab';
 import { 
   Package, Plus, Trash2, Edit3, CheckCircle2, AlertCircle, 
   Loader2, Sparkles, Tag, Layers, Stethoscope, ChevronRight, X
@@ -58,13 +59,9 @@ export default function PackagesManagerPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      const { data: labData, error: labErr } = await supabase
-        .from('labs')
-        .select('*')
-        .eq('owner_id', session.user.id)
-        .single();
+      const { activeLab: labData } = await resolveActiveLab(session.user.id);
 
-      if (labErr || !labData) {
+      if (!labData) {
         toast.error("Lab profile not found.");
         setIsLoading(false);
         return;
@@ -113,6 +110,8 @@ export default function PackagesManagerPage() {
 
   useEffect(() => {
     loadData();
+    window.addEventListener(LAB_CHANGED_EVENT, loadData);
+    return () => window.removeEventListener(LAB_CHANGED_EVENT, loadData);
   }, []);
 
   // Open Modal for New Package

@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, CheckCircle2, XCircle, Search, FileImage, ShieldCheck, Settings, X, AlertTriangle, History, Calendar, Filter, Clock } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Search, FileImage, ShieldCheck, Settings, X, AlertTriangle, History, Calendar, Filter, Clock, Check, Percent } from 'lucide-react';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
 
 export default function BillingApprovalsPage() {
   const [labs, setLabs] = useState<any[]>([]);
@@ -12,6 +13,11 @@ export default function BillingApprovalsPage() {
   
   // 🛑 Store global settings
   const [globalThreshold, setGlobalThreshold] = useState(2000);
+  const [globalRate, setGlobalRate] = useState(40);
+
+  // 🛑 Per-Lab Custom Cut States
+  const [editingCuts, setEditingCuts] = useState<Record<string, string>>({});
+  const [savingCutId, setSavingCutId] = useState<string | null>(null);
 
   // 🛑 Settings Modal States
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -42,16 +48,21 @@ export default function BillingApprovalsPage() {
     const rate = settings?.commission_percentage || 0;
     const threshold = settings?.commission_threshold || 2000;
     setGlobalThreshold(threshold);
+    setGlobalRate(rate);
 
     const { data: labsData } = await supabase
       .from('labs')
-      .select('id, name, city, is_active, payment_status, payment_method, sender_name, payment_screenshot, last_cleared_date, last_paid_amount, logo_url')
+      .select('id, name, city, is_active, payment_status, payment_method, sender_name, payment_screenshot, last_cleared_date, last_paid_amount, logo_url, commission_percentage')
       .order('payment_status', { ascending: false });
 
     const { data: bookings } = await supabase.from('bookings').select('lab_id, total_amount, created_at').eq('status', 'Completed');
 
     if (labsData) {
       const enrichedLabs = labsData.map(lab => {
+        const effectiveRate = (lab.commission_percentage !== null && lab.commission_percentage !== undefined)
+          ? Number(lab.commission_percentage)
+          : rate;
+
         const labBookings = bookings?.filter(b => {
           if (b.lab_id !== lab.id) return false;
           if (!lab.last_cleared_date) return true; 
@@ -59,15 +70,62 @@ export default function BillingApprovalsPage() {
         }) || [];
         
         const totalBilled = labBookings.reduce((sum, b) => sum + (b.total_amount || 0), 0);
-        const dueAmount = Math.round(totalBilled * (rate / 100));
+        const dueAmount = Math.round(totalBilled * (effectiveRate / 100));
         
         const isSystemBlocked = dueAmount >= threshold && lab.payment_status !== 'submitted';
         
-        return { ...lab, dueAmount, isSystemBlocked };
+        return { ...lab, totalBilled, effectiveRate, dueAmount, isSystemBlocked };
       });
       setLabs(enrichedLabs);
     }
     setIsLoading(false);
+  };
+
+  const handleSaveCut = async (labId: string, labName: string) => {
+    setSavingCutId(labId);
+    const rawVal = editingCuts[labId];
+    const parsedVal = rawVal === '' || rawVal === undefined ? null : Math.max(0, Math.min(100, parseFloat(rawVal)));
+
+    try {
+      const { error } = await supabase
+        .from('labs')
+        .update({ commission_percentage: parsedVal })
+        .eq('id', labId);
+
+      if (error) throw error;
+
+      setLabs((prev) =>
+        prev.map((l) => {
+          if (l.id !== labId) return l;
+          const newRate = parsedVal !== null ? parsedVal : globalRate;
+          const newDue = Math.round((l.totalBilled || 0) * (newRate / 100));
+          const isSystemBlocked = newDue >= globalThreshold && l.payment_status !== 'submitted';
+          return {
+            ...l,
+            commission_percentage: parsedVal,
+            effectiveRate: newRate,
+            dueAmount: newDue,
+            isSystemBlocked,
+          };
+        })
+      );
+
+      setEditingCuts((prev) => {
+        const copy = { ...prev };
+        delete copy[labId];
+        return copy;
+      });
+
+      toast.success(
+        parsedVal !== null
+          ? `Set ${parsedVal}% cut for ${labName}`
+          : `Reset to global ${globalRate}% for ${labName}`
+      );
+    } catch (err: any) {
+      toast.error('Failed to update cut: ' + err.message);
+    } finally {
+      setSavingCutId(null);
+    }
   };
 
   const fetchSettings = async () => {
@@ -308,6 +366,7 @@ export default function BillingApprovalsPage() {
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Lab Info</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Payment Status</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Commission Cut</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Payment Details</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Portal Access</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
@@ -354,6 +413,38 @@ export default function BillingApprovalsPage() {
                             <XCircle className="w-3.5 h-3.5" /> Accruing
                           </span>
                         )}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1.5">
+                          <div className="relative flex items-center">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={editingCuts[lab.id] !== undefined ? editingCuts[lab.id] : (lab.commission_percentage ?? '')}
+                              placeholder={`${globalRate}`}
+                              onChange={(e) => setEditingCuts({ ...editingCuts, [lab.id]: e.target.value })}
+                              className="w-16 px-2.5 py-1.5 text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none shadow-xs"
+                            />
+                            <span className="text-xs font-bold text-slate-500 ml-1">%</span>
+                          </div>
+                          {editingCuts[lab.id] !== undefined && (
+                            <button
+                              onClick={() => handleSaveCut(lab.id, lab.name)}
+                              disabled={savingCutId === lab.id}
+                              className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition active:scale-95 shadow-xs cursor-pointer"
+                              title="Save custom cut"
+                            >
+                              {savingCutId === lab.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                          {lab.commission_percentage !== null && lab.commission_percentage !== undefined
+                            ? `Custom (${lab.commission_percentage}%)`
+                            : `Default (${globalRate}%)`}
+                        </p>
                       </td>
 
                       <td className="px-6 py-4">

@@ -55,16 +55,19 @@ export default function AllDataDashboard() {
 
       // 2. Fetch Users & Labs (With exact counts, dates, and last paid)
       const { count: patientCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'patient');
-      const { data: labsData, count: labCount } = await supabase.from('labs').select('id, name, last_cleared_date, last_paid_amount', { count: 'exact' });
+      const { data: labsData, count: labCount } = await supabase.from('labs').select('id, name, last_cleared_date, last_paid_amount, commission_percentage', { count: 'exact' });
 
       // Create a map for quick lab info lookup
-      const labInfoMap: Record<string, { name: string, last_cleared: string | null, last_paid: number }> = {};
+      const labInfoMap: Record<string, { name: string, last_cleared: string | null, last_paid: number, custom_cut: number | null }> = {};
       if (labsData) {
         labsData.forEach(lab => {
           labInfoMap[lab.id] = { 
             name: lab.name, 
             last_cleared: lab.last_cleared_date,
-            last_paid: lab.last_paid_amount || 0 // Store last paid amount
+            last_paid: lab.last_paid_amount || 0,
+            custom_cut: (lab.commission_percentage !== null && lab.commission_percentage !== undefined)
+              ? Number(lab.commission_percentage)
+              : null
           };
         });
       }
@@ -81,8 +84,13 @@ export default function AllDataDashboard() {
         const completedTests = bookings.filter((b) => ['completed', 'sample_collected', 'report_uploaded'].includes(b.status?.toLowerCase()));
         const totalRevenue = completedTests.reduce((sum, curr) => sum + (Number(curr.total_amount) || 0), 0);
         
-        // 🛑 Platform Commission Calculation (Lifetime)
-        const totalCommission = totalRevenue * (rate / 100);
+        // 🛑 Platform Commission Calculation (Lifetime - calculates based on each lab's custom cut or fallback global rate)
+        const totalCommission = completedTests.reduce((sum, curr) => {
+          const labEffectiveRate = (curr.lab_id && labInfoMap[curr.lab_id]?.custom_cut !== null && labInfoMap[curr.lab_id]?.custom_cut !== undefined)
+            ? Number(labInfoMap[curr.lab_id].custom_cut)
+            : rate;
+          return sum + ((Number(curr.total_amount) || 0) * (labEffectiveRate / 100));
+        }, 0);
 
         const appOrdersCount = bookings.filter((b) => b.booking_source !== 'whatsapp_call').length;
         const manualOrdersCount = bookings.filter((b) => b.booking_source === 'whatsapp_call').length;
@@ -92,7 +100,7 @@ export default function AllDataDashboard() {
           totalLabs: labCount || 0,
           totalTestsDone: completedTests.length,
           revenueGenerated: totalRevenue,
-          platformCommission: totalCommission,
+          platformCommission: Math.round(totalCommission),
           appOrders: appOrdersCount,
           manualOrders: manualOrdersCount
         });
@@ -106,7 +114,7 @@ export default function AllDataDashboard() {
 
           const price = Number(b.total_amount) || 0;
           const bookingDate = new Date(b.created_at);
-          const labDetails = labInfoMap[labId] || { name: 'Unknown Lab', last_cleared: null, last_paid: 0 };
+          const labDetails = labInfoMap[labId] || { name: 'Unknown Lab', last_cleared: null, last_paid: 0, custom_cut: null };
           
           if (!labDataMap[labId]) {
             labDataMap[labId] = { count: 0, total_revenue: 0, current_revenue: 0 };
@@ -125,14 +133,15 @@ export default function AllDataDashboard() {
           const labDetails = labInfoMap[labId];
           const lifetimeRev = labDataMap[labId].total_revenue;
           const currentRev = labDataMap[labId].current_revenue;
+          const labCutRate = labDetails?.custom_cut ?? rate;
 
           return {
             lab_name: labDetails?.name || 'Unknown Lab',
             test_count: labDataMap[labId].count,
             total_revenue: lifetimeRev,
             current_revenue: currentRev,
-            platform_cut: Math.round(lifetimeRev * (rate / 100)), // Lifetime cut
-            current_cut: Math.round(currentRev * (rate / 100)),   // Current unpaid cut
+            platform_cut: Math.round(lifetimeRev * (labCutRate / 100)), // Lifetime cut
+            current_cut: Math.round(currentRev * (labCutRate / 100)),   // Current unpaid cut
             last_paid_amount: labDetails?.last_paid || 0,
             last_cleared_date: labDetails?.last_cleared || null
           };

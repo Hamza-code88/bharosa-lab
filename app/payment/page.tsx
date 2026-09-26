@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { resolveActiveLab } from '@/lib/activeLab';
 import { Loader2, UploadCloud, CheckCircle, ShieldCheck, RefreshCw, Mail, AlertTriangle, Building2, UserCircle2, ArrowRight, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
 
@@ -74,11 +75,7 @@ export default function CheckoutPage() {
         setLabEmail(session.user.email);
       }
 
-      const { data: lab } = await supabase
-        .from('labs')
-        .select('id, name, payment_status, last_cleared_date, is_registered_paid, registration_status, created_at, is_active')
-        .eq('owner_id', session.user.id)
-        .single();
+      const { activeLab: lab } = await resolveActiveLab(session.user.id);
         
       if (lab) {
         setLabId(lab.id);
@@ -101,12 +98,17 @@ export default function CheckoutPage() {
         const { data: settings } = await supabase.from('app_settings').select('*').eq('id', 1).single();
         const regFee = settings?.registration_fee || 5000;
 
-        const trialDays = Math.floor((Date.now() - new Date(lab.created_at).getTime()) / (1000 * 60 * 60 * 24));
+        const trialDays = lab.created_at
+          ? Math.floor((Date.now() - new Date(lab.created_at).getTime()) / (1000 * 60 * 60 * 24))
+          : 0;
         if (trialDays >= 30 && !lab.is_registered_paid) {
           setPaymentType('registration');
           setDueAmount(regFee); 
         } else {
-          const rate = settings?.commission_percentage || 0;
+          const globalRate = settings?.commission_percentage || 0;
+          const rate = (lab.commission_percentage !== null && lab.commission_percentage !== undefined)
+            ? Number(lab.commission_percentage)
+            : globalRate;
           const threshold = settings?.commission_threshold || 2000;
           
           if (settings) {

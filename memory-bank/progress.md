@@ -25,11 +25,10 @@
 - [x] Laboratory Intelligence & Visual Analytics Dashboard (`app/dashboard/page.tsx`) with Top 6 KPI overview, clean clinical white cards, high-contrast dark typography, full-width Top 5 Tests, and full mobile responsiveness.
 - [x] Official Google Play Store Live App URL (`https://play.google.com/store/apps/details?id=com.hamzacode.bharosalab`) configured across all website download CTAs.
 - [x] UN SDG 1 (No Poverty - 2% Healthcare Pledge) officially integrated across Homepage and About page.
-- [x] Next.js 16 Turbopack build verified (30/30 static and dynamic routes compiled).
+- [x] Multi-User Lab Access & Team Staff Management (`app/dashboard/staff`, `/join-lab`, `lib/activeLab.ts`, `LabSwitcher.tsx`, `supabase_staff_migration.sql`).
+- [x] Per-Lab Custom Negotiated Commission Cut (%) Architecture in Super Admin Billing, Checkout, Lab Analytics, and Rolling Lock Threshold (`supabase_custom_commission.sql`).
 
 ## Remaining Known Roadmap Items
-- [ ] User role expansion (Staff vs Owner permissions within a lab).
-- [ ] Enhanced Reporting & Analytics for Lab Owners (Charts/Graphs).
 - [ ] Automated SMS gateway integration (Optional/Future).
 - [ ] Patient Portal for viewing test results.
 - [ ] Final production deployment verifications (Vercel/Custom VPS).

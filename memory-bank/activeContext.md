@@ -44,8 +44,21 @@ The application is in a fully synchronized, production-ready state following a s
 - **Clean Clinical Healthcare Theme**: Pure white medical cards (`bg-white border-slate-200`) with high-contrast bold dark slate typography (`text-slate-900`), vibrant emerald/teal/indigo chart bars, and full-width Top 5 Prescribed Diagnostic Tests demand breakdown.
 - **Mobile Responsive & Touch-Optimized**: Full viewport adaptation, no horizontal scroll clipping, and tap-friendly tooltip inspection for mobile devices.
 
-### 10. Production Build Verified (100% Success)
-- Next.js 16 Turbopack production build (`npm run build`) completed with **Exit Code 0**; all 30/30 static and dynamic routes compiled cleanly.
+### 11. Multi-User Lab Access & Staff Invite Link System
+- **Staff Invitation Mechanism**: Built dedicated team management portal (`app/dashboard/staff/page.tsx`). Lab owners can copy a one-click invite link (`/join-lab?code=...`) or share an 8-character alphanumeric code (`BL-XXXXXX`).
+- **Staff Onboarding & Acceptance**: Created `/join-lab/page.tsx` with lab preview card, owner details, and an "Accept Invite & Access Portal" action.
+- **Multi-Lab Context Switching**: Implemented `lib/activeLab.ts` and `components/dashboard/LabSwitcher.tsx` supporting seamless switching between owned and invited labs stored in `localStorage` without sharing owner account credentials.
+- **Database Schema**: Created `supabase_staff_migration.sql` introducing `lab_staff` table, `invite_code` in `labs`, and full RLS policies.
+
+### 12. Per-Lab Custom Commission Cut (%) Architecture
+- **Negotiated Lab Commission Cuts**: Replaced the rigid single global commission percentage with per-lab customized cuts configurable in Super Admin Billing (`/super-admin/billing`).
+- **Seamless Global Fallback**: Labs without a negotiated rate (`commission_percentage IS NULL`) automatically inherit the global default rate from `app_settings.commission_percentage`.
+- **Live Recalculation & Portal Synchronization**:
+  - Super Admin Billing table features an inline cut editor (`%`) with instant live recalculation of accrued dues upon saving.
+  - Lab dashboard metrics (`app/dashboard/page.tsx`) display the lab's negotiated platform fee.
+  - Rolling lock threshold check (`app/dashboard/layout.tsx`) and payment checkout dues (`app/payment/page.tsx`) accurately calculate against the customized rate.
+  - Super Admin Dashboard Analytics (`app/super-admin/dashboard/page.tsx`) accurately computes platform lifetime commission and lab performance cuts across varying individual rates.
+- **Database Migration**: Added `supabase_custom_commission.sql` adding `commission_percentage NUMERIC DEFAULT NULL` to the `labs` table.
 
 ## Next Steps
 - Production deployment ready for Vercel / server hosting.
