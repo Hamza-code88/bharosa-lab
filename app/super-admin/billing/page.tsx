@@ -380,7 +380,14 @@ export default function BillingApprovalsPage() {
                     <tr key={lab.id} className={`hover:bg-gray-50 transition-colors ${lab.payment_status === 'submitted' ? 'bg-yellow-50/50' : lab.isSystemBlocked ? 'bg-red-50/20' : ''}`}>
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <Image src={lab.logo_url || 'https://ui-avatars.com/api/?name=Lab'} alt="Lab" width={40} height={40} className="rounded-xl border border-gray-200 bg-white" unoptimized />
+                          <Image 
+                            src={lab.logo_url || 'https://ui-avatars.com/api/?name=Lab'} 
+                            alt="Lab" 
+                            width={40} 
+                            height={40} 
+                            className="w-10 h-10 rounded-xl border border-gray-200 bg-white object-cover shrink-0" 
+                            unoptimized 
+                          />
                           <div className="ml-3">
                             <p className="font-bold text-gray-900">{lab.name}</p>
                             <p className={`text-xs font-bold mt-0.5 ${lab.isSystemBlocked ? 'text-red-600' : 'text-orange-500'}`}>
