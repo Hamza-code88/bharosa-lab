@@ -177,12 +177,12 @@ export default function BillingApprovalsPage() {
     const newStatus = !isCurrentlyActive;
     if (!confirm(`Are you sure you want to manually ${newStatus ? 'Activate' : 'Deactivate'} this lab?`)) return;
 
-    setLabs(labs.map(lab => lab.id === labId ? { ...lab, is_active: newStatus } : lab));
+    setLabs(labs.map(lab => lab.id === labId ? { ...lab, is_active: newStatus, is_verified: newStatus } : lab));
 
-    const { error } = await supabase.from('labs').update({ is_active: newStatus }).eq('id', labId);
+    const { error } = await supabase.from('labs').update({ is_active: newStatus, is_verified: newStatus }).eq('id', labId);
     if (error) {
       alert("Error updating status!");
-      setLabs(labs.map(lab => lab.id === labId ? { ...lab, is_active: isCurrentlyActive } : lab));
+      setLabs(labs.map(lab => lab.id === labId ? { ...lab, is_active: isCurrentlyActive, is_verified: isCurrentlyActive } : lab));
     }
   };
 
@@ -197,6 +197,7 @@ export default function BillingApprovalsPage() {
       .update({
         payment_status: 'cleared',
         is_active: true, 
+        is_verified: true,
         last_cleared_date: currentISOTime,
         last_paid_amount: amountCleared, 
         payment_screenshot: null, 

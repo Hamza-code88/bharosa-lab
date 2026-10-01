@@ -44,7 +44,8 @@ export default function RegistrationsPage() {
       .update({
         registration_status: 'cleared',
         is_registered_paid: true,
-        is_active: true
+        is_active: true,
+        is_verified: true
       })
       .eq('id', labId);
 
@@ -61,11 +62,11 @@ export default function RegistrationsPage() {
     if (!confirm(`Are you sure you want to ${newStatus ? 'Unlock' : 'Lock'} this account?`)) return;
 
     // Optimistic update
-    setLabs(labs.map(lab => lab.id === labId ? { ...lab, is_active: newStatus } : lab));
+    setLabs(labs.map(lab => lab.id === labId ? { ...lab, is_active: newStatus, is_verified: newStatus } : lab));
 
     const { error } = await supabase
       .from('labs')
-      .update({ is_active: newStatus })
+      .update({ is_active: newStatus, is_verified: newStatus })
       .eq('id', labId);
 
     if (error) {
