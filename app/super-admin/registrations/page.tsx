@@ -64,9 +64,15 @@ export default function RegistrationsPage() {
     // Optimistic update
     setLabs(labs.map(lab => lab.id === labId ? { ...lab, is_active: newStatus, is_verified: newStatus } : lab));
 
+    const updatePayload: any = { is_active: newStatus, is_verified: newStatus };
+    if (newStatus) {
+      updatePayload.is_registered_paid = true;
+      updatePayload.registration_status = 'cleared';
+    }
+
     const { error } = await supabase
       .from('labs')
-      .update({ is_active: newStatus, is_verified: newStatus })
+      .update(updatePayload)
       .eq('id', labId);
 
     if (error) {
@@ -167,15 +173,13 @@ export default function RegistrationsPage() {
                         <span className="inline-flex items-center gap-1 text-green-600 bg-green-50 px-2.5 py-1 rounded-lg text-xs font-bold">
                           <CheckCircle className="w-4 h-4" /> Paid
                         </span>
-                      ) : lab.registration_status === 'pending_approval' ? (
+                      ) : (
                         <button 
                           onClick={() => approveRegistration(lab.id, lab.name)}
-                          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                          className={`${lab.registration_status === 'pending_approval' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-600 hover:bg-blue-700'} text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-xs`}
                         >
-                          Approve Fee
+                          {lab.registration_status === 'pending_approval' ? 'Approve Receipt' : 'Approve Fee'}
                         </button>
-                      ) : (
-                        <span className="text-gray-400 text-xs font-medium">Unpaid</span>
                       )}
                     </td>
                     <td className="p-4 text-center">

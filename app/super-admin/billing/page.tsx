@@ -179,7 +179,13 @@ export default function BillingApprovalsPage() {
 
     setLabs(labs.map(lab => lab.id === labId ? { ...lab, is_active: newStatus, is_verified: newStatus } : lab));
 
-    const { error } = await supabase.from('labs').update({ is_active: newStatus, is_verified: newStatus }).eq('id', labId);
+    const updatePayload: any = { is_active: newStatus, is_verified: newStatus };
+    if (newStatus) {
+      updatePayload.is_registered_paid = true;
+      updatePayload.registration_status = 'cleared';
+    }
+
+    const { error } = await supabase.from('labs').update(updatePayload).eq('id', labId);
     if (error) {
       alert("Error updating status!");
       setLabs(labs.map(lab => lab.id === labId ? { ...lab, is_active: isCurrentlyActive, is_verified: isCurrentlyActive } : lab));

@@ -98,6 +98,12 @@ export default function CheckoutPage() {
         const { data: settings } = await supabase.from('app_settings').select('*').eq('id', 1).single();
         const regFee = settings?.registration_fee || 5000;
 
+        if (settings) {
+          setEpDetails({ number: settings.easypaisa_number || 'N/A', title: settings.easypaisa_title || 'N/A' });
+          setJcDetails({ number: settings.jazzcash_number || 'N/A', title: settings.jazzcash_title || 'N/A' });
+          setSpDetails({ number: settings.sadapay_number || 'N/A', title: settings.sadapay_title || 'N/A' });
+        }
+
         const trialDays = lab.created_at
           ? Math.floor((Date.now() - new Date(lab.created_at).getTime()) / (1000 * 60 * 60 * 24))
           : 0;
@@ -110,12 +116,6 @@ export default function CheckoutPage() {
             ? Number(lab.commission_percentage)
             : globalRate;
           const threshold = settings?.commission_threshold || 2000;
-          
-          if (settings) {
-            setEpDetails({ number: settings.easypaisa_number || 'N/A', title: settings.easypaisa_title || 'N/A' });
-            setJcDetails({ number: settings.jazzcash_number || 'N/A', title: settings.jazzcash_title || 'N/A' });
-            setSpDetails({ number: settings.sadapay_number || 'N/A', title: settings.sadapay_title || 'N/A' });
-          }
 
           let query = supabase
             .from('bookings')

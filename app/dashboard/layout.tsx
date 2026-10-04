@@ -65,7 +65,7 @@ export default function DashboardLayout({
       // 1.3 TRIAL CHECK: 30 Days Registration
       if (lab.created_at) {
         const trialDays = Math.floor((Date.now() - new Date(lab.created_at).getTime()) / (1000 * 60 * 60 * 24));
-        if (trialDays >= 30 && !lab.is_registered_paid) {
+        if (trialDays >= 30 && !lab.is_registered_paid && lab.registration_status !== 'cleared') {
           router.replace('/payment');
           return;
         }
