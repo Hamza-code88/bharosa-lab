@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image'; 
 import { supabase } from '@/lib/supabase';
-import { resolveActiveLab, LabItem, LAB_CHANGED_EVENT } from '@/lib/activeLab';
+import { resolveActiveLab, LabItem, LAB_CHANGED_EVENT, setActiveLabId } from '@/lib/activeLab';
 import { Smartphone, Image as ImageIcon, MapPin, Phone, User, Activity, CheckCircle2, Star, MoreVertical } from 'lucide-react';
 
 import BasicInfo, { LabData } from '../../components/labprofile/BasicInfo'; 
@@ -48,15 +48,28 @@ export default function PremiumLabProfile() {
     }
   };
 
+  const [ownedLab, setOwnedLab] = useState<any | null>(null);
+
   const fetchExistingData = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserId(session.user.id);
+
+        // 1. Check if user already owns a lab
+        const { data: userOwnedLab } = await supabase
+          .from('labs')
+          .select('*')
+          .eq('owner_id', session.user.id)
+          .maybeSingle();
+
+        setOwnedLab(userOwnedLab);
+
         const { activeLab: currentLab } = await resolveActiveLab(session.user.id);
         setActiveLab(currentLab);
         
-        const dbData = currentLab as any;
+        // 2. Sirf tab data prefill karein agar user apna owned lab dekh raha ho
+        const dbData = (userOwnedLab || (currentLab?.user_role === 'owner' ? currentLab : null)) as any;
         if (dbData) {
           let lat = '', lng = '';
           if (dbData.location_pin) {
@@ -146,16 +159,26 @@ export default function PremiumLabProfile() {
       };
 
       let saveError;
-      if (activeLab?.id) {
-        const { error } = await supabase.from('labs').update(dataToSave).eq('id', activeLab.id);
+      const targetLabId = ownedLab?.id || (activeLab?.user_role === 'owner' ? activeLab?.id : null);
+
+      if (targetLabId) {
+        const { error } = await supabase.from('labs').update(dataToSave).eq('id', targetLabId);
         saveError = error;
       } else {
-        const { error } = await supabase.from('labs').upsert({ ...dataToSave, owner_id: userId }, { onConflict: 'owner_id' });
+        const { data: newLab, error } = await supabase
+          .from('labs')
+          .upsert({ ...dataToSave, owner_id: userId }, { onConflict: 'owner_id' })
+          .select()
+          .single();
         saveError = error;
+        if (!error && newLab) {
+          setActiveLabId(newLab.id);
+        }
       }
 
       if (saveError) throw saveError;
       alert('Profile Saved Successfully! 🚀');
+      window.location.reload();
     } catch (err: unknown) { 
       if (err instanceof Error) {
         alert('Save Error: ' + err.message);
@@ -174,6 +197,25 @@ export default function PremiumLabProfile() {
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1 sm:mb-2">Lab Profile Center</h1>
         <p className="text-sm sm:text-base text-gray-500">Manage your laboratory&apos;s public identity, branding, and live location.</p>
       </div>
+
+      {activeLab?.user_role === 'staff' && (
+        <div className="max-w-7xl mx-auto mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex items-start gap-3 shadow-xs">
+          <div className="px-2.5 py-1 bg-amber-100 border border-amber-200 rounded-lg text-amber-800 font-extrabold text-[11px] uppercase tracking-wider shrink-0 mt-0.5">
+            STAFF MODE
+          </div>
+          <div className="text-xs sm:text-sm">
+            <p className="font-bold text-amber-950">
+              Aap filhal &quot;{activeLab.name}&quot; mein bataur Staff kaam kar rahe hain.
+            </p>
+            <p className="text-amber-800 mt-1 leading-relaxed">
+              {ownedLab 
+                ? `Aapki apni lab "${ownedLab.name}" bhi mojud hai. Upar header mein Lab Switcher par click karke apne Owner portal mein switch karein.`
+                : "Apni nayi lab register karne ke liye neeche apna form fill karke 'Save Profile' par click karein. Aap foran apni lab ke Owner ban jayenge!"
+              }
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
         

@@ -42,80 +42,30 @@ export default function AddTestForm({ labId, masterTests, onTestAdded, onPreview
     });
   }, [testName, price]);
 
-  // Helper to find best matching master test
+  // Helper to find exact matching master test OR create a new one with the EXACT name
   const resolveMasterTestId = async (inputTitle: string): Promise<string> => {
-    const clean = inputTitle.trim().toLowerCase();
+    const cleanTitle = inputTitle.trim();
+    const cleanLower = cleanTitle.toLowerCase();
 
-    // 1. Exact match in masterTests
-    let match = masterTests.find(m => m.title.toLowerCase().trim() === clean);
-    if (match) return match.id;
+    // 1. Exact match in local masterTests list (case-insensitive)
+    const exactLocal = masterTests.find(m => m.title.trim().toLowerCase() === cleanLower);
+    if (exactLocal) return exactLocal.id;
 
-    // 2. Substring match
-    match = masterTests.find(m => m.title.toLowerCase().includes(clean) || clean.includes(m.title.toLowerCase()));
-    if (match) return match.id;
-
-    // 3. Common medical acronyms & keywords
-    if (clean.includes('cbc') || clean.includes('blood count') || clean.includes('blood cp')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('cbc') || m.title.toLowerCase().includes('blood'));
-    } else if (clean.includes('lft') || clean.includes('liver')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('lft') || m.title.toLowerCase().includes('liver'));
-    } else if (clean.includes('rft') || clean.includes('renal') || clean.includes('kidney') || clean.includes('kft')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('renal') || m.title.toLowerCase().includes('kidney') || m.title.toLowerCase().includes('rft'));
-    } else if (clean.includes('sugar') || clean.includes('glucose') || clean.includes('fbs') || clean.includes('rbs')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('glucose') || m.title.toLowerCase().includes('sugar'));
-    } else if (clean.includes('lipid') || clean.includes('cholesterol') || clean.includes('triglyceride')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('lipid') || m.title.toLowerCase().includes('cholesterol'));
-    } else if (clean.includes('urine')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('urine'));
-    } else if (clean.includes('dengue')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('dengue'));
-    } else if (clean.includes('malaria') || clean.includes('mp')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('malaria'));
-    } else if (clean.includes('hba1c') || clean.includes('a1c')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('hba1c'));
-    } else if (clean.includes('thyroid') || clean.includes('tsh') || clean.includes('t3') || clean.includes('t4')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('thyroid') || m.title.toLowerCase().includes('tsh'));
-    } else if (clean.includes('creatinine')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('creatinine'));
-    } else if (clean.includes('calcium')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('calcium'));
-    } else if (clean.includes('vitamin')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('vitamin'));
-    } else if (clean.includes('crp')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('crp'));
-    } else if (clean.includes('esr')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('esr'));
-    } else if (clean.includes('uric')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('uric'));
-    } else if (clean.includes('typhoid') || clean.includes('widal')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('typhoid') || m.title.toLowerCase().includes('widal'));
-    } else if (clean.includes('stool')) {
-      match = masterTests.find(m => m.title.toLowerCase().includes('stool'));
-    }
-    if (match) return match.id;
-
-    // 4. Token match for any word length >= 3
-    const words = clean.split(/\s+/).filter(w => w.length >= 3);
-    for (const w of words) {
-      match = masterTests.find(m => m.title.toLowerCase().includes(w));
-      if (match) return match.id;
-    }
-
-    // 5. Query Supabase directly with case-insensitive search
-    const { data: dbMatch } = await supabase
+    // 2. Exact match in Supabase master_tests table (case-insensitive)
+    const { data: dbExact } = await supabase
       .from('master_tests')
       .select('id')
-      .ilike('title', `%${inputTitle.trim()}%`)
+      .ilike('title', cleanTitle)
       .limit(1)
       .maybeSingle();
 
-    if (dbMatch) return dbMatch.id;
+    if (dbExact?.id) return dbExact.id;
 
-    // 6. Try to create new in master_tests
+    // 3. User ne jo EXACT name likha ha, usi name se new master_test create karein (NO GUESSING / NO AUTO-REPLACE)
     const { data: newMaster, error: masterErr } = await supabase
       .from('master_tests')
       .insert({
-        title: inputTitle.trim(),
+        title: cleanTitle,
         about: 'Diagnostic laboratory medical test.',
         preparation: 'Please follow standard laboratory instructions.'
       })
@@ -126,12 +76,22 @@ export default function AddTestForm({ labId, masterTests, onTestAdded, onPreview
       return newMaster.id;
     }
 
-    // 7. If RLS blocked insert, fallback to first available master test safely
-    if (masterTests.length > 0) {
-      return masterTests[0].id;
+    if (masterErr) {
+      console.error("Error creating master test:", masterErr);
+      // Agar duplicate ya concurrency ki wajah se insert fail hua ho, dobara check karein
+      const { data: retryMatch } = await supabase
+        .from('master_tests')
+        .select('id')
+        .ilike('title', cleanTitle)
+        .limit(1)
+        .maybeSingle();
+
+      if (retryMatch?.id) return retryMatch.id;
+
+      throw new Error(`Test save nahi ho saka: ${masterErr.message || 'Unknown error'}`);
     }
 
-    throw new Error("Koi master test record nahi mil saka.");
+    throw new Error("Test save karne mein masla aya.");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -214,6 +174,7 @@ export default function AddTestForm({ labId, masterTests, onTestAdded, onPreview
           </label>
           <input 
             type="text" 
+            list="available-master-tests"
             value={testName}
             onChange={(e) => setTestName(e.target.value)}
             placeholder="Enter Test Name (e.g. CBC, Lipid Profile, LFT, Blood Sugar)"
@@ -221,6 +182,11 @@ export default function AddTestForm({ labId, masterTests, onTestAdded, onPreview
             required
             autoComplete="off"
           />
+          <datalist id="available-master-tests">
+            {masterTests.map((m) => (
+              <option key={m.id} value={m.title} />
+            ))}
+          </datalist>
         </div>
 
         {/* 2. PRICE INPUT ONLY */}
