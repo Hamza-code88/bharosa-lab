@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       labCity,
     } = body;
 
-    const webhookUrl = process.env.DISCORD_REPORTS_WEBHOOK_URL || 'https://discord.com/api/webhooks/1546709938871476355/A9nm7hcHBowlEcuOnb-mnjbgAUAYd9CYzV3LpR6nYb21-wV91_48wE3oIQm2px41IYnM';
+    const webhookUrl = process.env.DISCORD_REPORTS_WEBHOOK_URL;
 
     if (!webhookUrl) {
       return NextResponse.json({ error: 'Discord webhook URL not configured' }, { status: 500 });

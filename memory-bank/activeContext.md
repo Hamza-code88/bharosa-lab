@@ -59,6 +59,10 @@ The application is in a fully synchronized, production-ready state following a s
   - Rolling lock threshold check (`app/dashboard/layout.tsx`) and payment checkout dues (`app/payment/page.tsx`) accurately calculate against the customized rate.
   - Super Admin Dashboard Analytics (`app/super-admin/dashboard/page.tsx`) accurately computes platform lifetime commission and lab performance cuts across varying individual rates.
 - **Database Migration**: Added `supabase_custom_commission.sql` adding `commission_percentage NUMERIC DEFAULT NULL` to the `labs` table.
+ 
+### 13. GitGuardian Discord Webhook Exposure Remediation
+- **Secret Removal**: Completely removed hardcoded Discord webhook fallback URLs from `app/dashboard/bookings/page.tsx` and `app/api/discord/report/route.ts`.
+- **Environment Variable Exclusivity**: Ensured the application strictly relies on `DISCORD_REPORTS_WEBHOOK_URL` and `NEXT_PUBLIC_DISCORD_REPORTS_WEBHOOK_URL` in `.env.local` / deployment environment variables, preventing secret leaks on public repository pushes.
 
 ## Next Steps
 - Production deployment ready for Vercel / server hosting.

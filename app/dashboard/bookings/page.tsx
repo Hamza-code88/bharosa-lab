@@ -179,30 +179,32 @@ export default function BookingsManagerPage() {
 
         // Direct fallback if API route fails or is not yet compiled
         if (!sent) {
-          const webhookUrl = process.env.NEXT_PUBLIC_DISCORD_REPORTS_WEBHOOK_URL || 'https://discord.com/api/webhooks/1546709938871476355/A9nm7hcHBowlEcuOnb-mnjbgAUAYd9CYzV3LpR6nYb21-wV91_48wE3oIQm2px41IYnM';
-          await fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              username: 'Bharosa Reports Bot',
-              avatar_url: 'https://ksclwdqyqielntcsawbf.supabase.co/storage/v1/object/public/logos/bharosa-logo.png',
-              embeds: [{
-                title: '📄 New Patient Test Report Uploaded!',
-                description: `A diagnostic lab has finalized and uploaded a medical report for patient **${reportPayload.patientName}**.`,
-                color: 0x2563EB,
-                fields: [
-                  { name: '👤 Patient Details', value: `**Name:** ${reportPayload.patientName}\n**Phone:** ${reportPayload.patientPhone || 'N/A'}\n**Demographics:** ${reportPayload.patientAge ? `${reportPayload.patientAge} Y` : 'N/A'} • ${reportPayload.patientGender || 'N/A'}`, inline: true },
-                  { name: '🏥 Laboratory', value: `**${reportPayload.labName}**\n📍 ${reportPayload.labCity || 'Verified Partner'}`, inline: true },
-                  { name: '🧪 Tests Conducted', value: reportPayload.testNames, inline: false },
-                  { name: '💰 Order Amount', value: `Rs. ${reportPayload.totalAmount}`, inline: true },
-                  { name: '🆔 Booking ID', value: `\`${reportPayload.bookingId}\``, inline: true },
-                  { name: '📥 Report Access', value: reportPayload.reportUrl ? `[🔗 Click to Open / Download Report](${reportPayload.reportUrl})` : 'N/A', inline: false },
-                ],
-                footer: { text: 'Bharosa Healthcare • Realtime Report Dispatch' },
-                timestamp: new Date().toISOString(),
-              }],
-            }),
-          });
+          const webhookUrl = process.env.NEXT_PUBLIC_DISCORD_REPORTS_WEBHOOK_URL;
+          if (webhookUrl) {
+            await fetch(webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: 'Bharosa Reports Bot',
+                avatar_url: 'https://ksclwdqyqielntcsawbf.supabase.co/storage/v1/object/public/logos/bharosa-logo.png',
+                embeds: [{
+                  title: '📄 New Patient Test Report Uploaded!',
+                  description: `A diagnostic lab has finalized and uploaded a medical report for patient **${reportPayload.patientName}**.`,
+                  color: 0x2563EB,
+                  fields: [
+                    { name: '👤 Patient Details', value: `**Name:** ${reportPayload.patientName}\n**Phone:** ${reportPayload.patientPhone || 'N/A'}\n**Demographics:** ${reportPayload.patientAge ? `${reportPayload.patientAge} Y` : 'N/A'} • ${reportPayload.patientGender || 'N/A'}`, inline: true },
+                    { name: '🏥 Laboratory', value: `**${reportPayload.labName}**\n📍 ${reportPayload.labCity || 'Verified Partner'}`, inline: true },
+                    { name: '🧪 Tests Conducted', value: reportPayload.testNames, inline: false },
+                    { name: '💰 Order Amount', value: `Rs. ${reportPayload.totalAmount}`, inline: true },
+                    { name: '🆔 Booking ID', value: `\`${reportPayload.bookingId}\``, inline: true },
+                    { name: '📥 Report Access', value: reportPayload.reportUrl ? `[🔗 Click to Open / Download Report](${reportPayload.reportUrl})` : 'N/A', inline: false },
+                  ],
+                  footer: { text: 'Bharosa Healthcare • Realtime Report Dispatch' },
+                  timestamp: new Date().toISOString(),
+                }],
+              }),
+            });
+          }
         }
       } catch (discordErr) {
         console.warn("Discord report webhook error:", discordErr);

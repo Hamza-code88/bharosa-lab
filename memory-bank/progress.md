@@ -27,6 +27,7 @@
 - [x] UN SDG 1 (No Poverty - 2% Healthcare Pledge) officially integrated across Homepage and About page.
 - [x] Multi-User Lab Access & Team Staff Management (`app/dashboard/staff`, `/join-lab`, `lib/activeLab.ts`, `LabSwitcher.tsx`, `supabase_staff_migration.sql`).
 - [x] Per-Lab Custom Negotiated Commission Cut (%) Architecture in Super Admin Billing, Checkout, Lab Analytics, and Rolling Lock Threshold (`supabase_custom_commission.sql`).
+- [x] Security Fix: Removed hardcoded Discord Reports Webhook fallback URLs from `app/dashboard/bookings/page.tsx` and `app/api/discord/report/route.ts`, ensuring webhooks only load from secure `.env.local` / environment variables.
 
 ## Remaining Known Roadmap Items
 - [ ] Automated SMS gateway integration (Optional/Future).
